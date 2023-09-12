@@ -1,0 +1,71 @@
+import os
+import zipfile
+import csv
+    
+def zipDir(path):
+    zf = zipfile.ZipFile(path+".zip", "w")
+    for dirname, subdirs, files in os.walk(path):
+        directory = os.path.relpath(path,dirname)        
+        for filename in files:
+            zf.write(os.path.join(dirname, filename),os.path.join(directory, filename))
+    zf.close()
+
+def deleteFolder(path):
+    emptyFolder(path)
+    os.removedirs(path)
+
+def emptyFolder(path):
+    for filename in os.listdir(path):
+            if os.path.isdir(os.path.join(path,filename)):
+                deleteFolder(path)
+
+            else:
+                os.remove(os.path.join(path,filename))
+
+
+
+def decompressZip(folder):
+    with zipfile.ZipFile(folder+".zip","r") as zip:
+        zip.extractall(folder)
+
+def zipAndDelete(folder):
+    zipDir(folder)
+    deleteFolder(folder)
+
+def createFolder(folder):
+    if not os.path.isdir(folder):
+        os.mkdir(folder)
+    else:
+        emptyFolder(folder)
+
+def getImages(folder):
+    # Get a list of all JPEG files in the specified folder
+    image_files = [f for f in os.listdir(folder) if f.endswith(".jpg")]
+    numbers = [x[:-4] for x in image_files]
+    image_files = [x for _,x in sorted(zip(numbers,image_files))]
+    return image_files
+
+def openCsv(pathTocsv):
+    with open(pathTocsv, 'r') as file:
+        reader = csv.DictReader(file)
+        toret = {x:[] for x in reader.fieldnames}
+        for row in reader:
+            for head in reader.fieldnames:
+                toret[head].append(row[head])
+        return toret
+
+def ensureExistance(folder):
+    if not os.path.exists(folder):
+        zipFile = folder+".zip"
+        if os.path.isfile(zipFile):
+            decompressZip(folder)
+
+        else:
+            os.makedirs(folder)
+
+def copyFile(sorceFolder,sourceFile,destinationFolder,destinationFile):
+    with open(os.path.join(sorceFolder, sourceFile), 'rb') as source:
+        with open(os.path.join(destinationFolder, destinationFile), 'wb') as destination:
+            destination.write(source.read())
+    
+
