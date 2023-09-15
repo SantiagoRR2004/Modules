@@ -387,11 +387,11 @@ def getSongs(folder,songNames):
     saveList(mp3List,songNames)
 
     percentageResults = calculatePercentage(mp3List)
-    with open("mp3Percents.json", "w") as jsonFile:
+    with open("Music/mp3Percents.json", "w") as jsonFile:
         json.dump(percentageResults, jsonFile)
 
 
-    with open("notExercise.txt", 'r') as file:
+    with open("Music/notExercise.txt", 'r') as file:
         elements = file.read().splitlines()
 
     # We eliminate all the songs in notExercise
