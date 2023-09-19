@@ -1,14 +1,6 @@
 import os
-import zipfile
 import csv
-    
-def zipDir(path):
-    zf = zipfile.ZipFile(path+".zip", "w")
-    for dirname, subdirs, files in os.walk(path):
-        directory = os.path.relpath(path,dirname)        
-        for filename in files:
-            zf.write(os.path.join(dirname, filename),os.path.join(directory, filename))
-    zf.close()
+from Modules import zipping
 
 def deleteFolder(path):
     emptyFolder(path)
@@ -21,16 +13,6 @@ def emptyFolder(path):
 
             else:
                 os.remove(os.path.join(path,filename))
-
-
-
-def decompressZip(folder):
-    with zipfile.ZipFile(folder+".zip","r") as zip:
-        zip.extractall(folder)
-
-def zipAndDelete(folder):
-    zipDir(folder)
-    deleteFolder(folder)
 
 def createFolder(folder):
     if not os.path.isdir(folder):
@@ -58,7 +40,7 @@ def ensureExistance(folder):
     if not os.path.exists(folder):
         zipFile = folder+".zip"
         if os.path.isfile(zipFile):
-            decompressZip(folder)
+            zipping.decompressZip(folder)
 
         else:
             os.makedirs(folder)
@@ -68,4 +50,3 @@ def copyFile(sorceFolder,sourceFile,destinationFolder,destinationFile):
         with open(os.path.join(destinationFolder, destinationFile), 'wb') as destination:
             destination.write(source.read())
     
-

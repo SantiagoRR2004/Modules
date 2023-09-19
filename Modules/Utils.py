@@ -13,6 +13,7 @@ import shutil
 import os
 import json
 from Modules import FileHandling
+from Modules import zipping
 #https://stackoverflow.com/questions/44375872/pypdf2-returning-blank-pdf-after-copy
 
 def is_month(string):
@@ -176,15 +177,6 @@ def formattingDates(release_dates):
 
     return formattedDates
 
-
-def zipdir(path):
-    zf = zipfile.ZipFile(path+".zip", "w")
-    for dirname, subdirs, files in os.walk(path):
-        zf.write(dirname)
-        for filename in files:
-            zf.write(os.path.join(dirname, filename))
-    zf.close()
-
 def deleteFolder(path):
     emptyFolder(path)
     os.removedirs(path)
@@ -330,7 +322,7 @@ def preparationForCBZ(manga,minimum,callerDirectory,division,naming):
         name = nameCreator(manga,division,names[divide.index(i)],naming[division]["inversion"],divide.index(i)+1,naming[division]["numeration"],".cbz")
         create_cbz(image_folder, i[::-1], os.path.join(pdfFolder, name))
 
-    FileHandling.zipAndDelete(image_folder)
+    zipping.zipAndDelete(image_folder)
 
 def calculatePercentage(strings):
     counts = {}  # Dictionary to store string counts
