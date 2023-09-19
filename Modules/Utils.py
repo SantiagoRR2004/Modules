@@ -3,7 +3,6 @@ import smtplib
 from email.message import EmailMessage
 import requests
 import csv
-import zipfile
 import subprocess
 import shutil
 import os
@@ -170,15 +169,6 @@ def formattingDates(release_dates):
         formattedDates.append({"start":formattedStart,"end":formattedEnd})
 
     return formattedDates
-
-
-def zipdir(path):
-    zf = zipfile.ZipFile(path+".zip", "w")
-    for dirname, subdirs, files in os.walk(path):
-        zf.write(dirname)
-        for filename in files:
-            zf.write(os.path.join(dirname, filename))
-    zf.close()
 
 def deleteFolder(path):
     emptyFolder(path)
