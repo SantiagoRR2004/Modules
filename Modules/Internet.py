@@ -1,5 +1,6 @@
 import requests
 from Modules import FileHandling
+from Modules import zipping
 import os
 import random
 import time
@@ -104,6 +105,6 @@ def mangasee123Downloader(manga,chapter,maxDownload,callerDirectory,skip=[],miss
 
     driver.quit()
 
-    FileHandling.zipAndDelete(folder)
+    zipping.zipAndDelete(folder)
 
 

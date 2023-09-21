@@ -343,6 +343,8 @@ def calculatePercentage(strings):
         if value > 1:
             percentage = (value / total_strings) * 100
             percentages[key] = percentage
+    percentages = {k: v for k, v in sorted(percentages.items(), key=lambda item: item[1], reverse=True)}
+
     return percentages
 
 def runTerminal(command):
