@@ -11,8 +11,8 @@ def zipDir(path):
     zf.close()
 
 def decompressZip(folder):
-    with zipfile.ZipFile(folder+".zip","r") as zip:
-        zip.extractall(folder)
+    with zipfile.ZipFile(folder+".zip","r") as zipFile:
+        zipFile.extractall(folder)
 
 def zipAndDelete(folder):
     zipDir(folder)

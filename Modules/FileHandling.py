@@ -8,11 +8,11 @@ def deleteFolder(path):
 
 def emptyFolder(path):
     for filename in os.listdir(path):
-            if os.path.isdir(os.path.join(path,filename)):
-                deleteFolder(path)
+        if os.path.isdir(os.path.join(path,filename)):
+            deleteFolder(path)
 
-            else:
-                os.remove(os.path.join(path,filename))
+        else:
+            os.remove(os.path.join(path,filename))
 
 def createFolder(folder):
     if not os.path.isdir(folder):
@@ -49,4 +49,3 @@ def copyFile(sorceFolder,sourceFile,destinationFolder,destinationFile):
     with open(os.path.join(sorceFolder, sourceFile), 'rb') as source:
         with open(os.path.join(destinationFolder, destinationFile), 'wb') as destination:
             destination.write(source.read())
-    
