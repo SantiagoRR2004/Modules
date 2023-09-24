@@ -177,31 +177,6 @@ def formattingDates(release_dates):
 
     return formattedDates
 
-def deleteFolder(path):
-    emptyFolder(path)
-    os.removedirs(path)
-
-def emptyFolder(path):
-    for filename in os.listdir(path):
-            if os.path.isdir(os.path.join(path,filename)):
-                deleteFolder(path)
-            else:
-                os.remove(os.path.join(path,filename))
-
-def download_image(url, dest_file):
-    if not os.path.isfile(dest_file):
-        response = requests.get(url)
-        if response.status_code == 200:
-            with open(dest_file, 'wb') as f:
-                f.write(response.content)
-
-def get_images(image_folder):
-    # Get a list of all JPEG files in the specified folder
-    image_files = [f for f in os.listdir(image_folder) if f.endswith(".jpg")]
-    numbers = [int(x[:-4]) for x in image_files]
-    image_files = [x for _,x in sorted(zip(numbers,image_files))]
-    return image_files
-
 def open_csv(pathTocsv):
     with open(pathTocsv, 'r') as file:
         reader = csv.DictReader(file)
@@ -210,7 +185,6 @@ def open_csv(pathTocsv):
             for head in reader.fieldnames:
                 toret[head].append(row[head])
         return toret
-
 
 def divider(images,classifier,key,minimum):
     toret = []
@@ -373,7 +347,6 @@ def saveList(list0,outputFile):
     with open(outputFile, "w") as file:
         for song in sorted(list0):
             file.write(song + "\n")
-
 
 def getSongs(folder,songNames):
     mp3List = [file for file in os.listdir(folder) if file.endswith(".mp3")]
