@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 import smtplib
 from email.message import EmailMessage
-import requests
 import csv
 import subprocess
 import shutil
@@ -170,23 +169,6 @@ def formattingDates(release_dates):
 
     return formattedDates
 
-def deleteFolder(path):
-    emptyFolder(path)
-    os.removedirs(path)
-
-def emptyFolder(path):
-    for filename in os.listdir(path):
-            if os.path.isdir(os.path.join(path,filename)):
-                deleteFolder(path)
-            else:
-                os.remove(os.path.join(path,filename))
-
-def download_image(url, dest_file):
-    if not os.path.isfile(dest_file):
-        response = requests.get(url)
-        if response.status_code == 200:
-            with open(dest_file, 'wb') as f:
-                f.write(response.content)
 
 
 def open_csv(pathTocsv):
