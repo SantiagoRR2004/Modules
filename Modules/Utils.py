@@ -195,6 +195,12 @@ def copySongs(folder,outputFolder,randomizedList,widthNumber):
         shutil.copy(origin, destination)
 
 def saveList(list0,outputFile):
+    with open(outputFile, "r") as file:
+        oldList = file.readlines()
+        oldList = [line.strip() for line in oldList]
+
+    list0.extend([x for x in oldList if x not in list0])
+
     with open(outputFile, "w") as file:
         for song in sorted(list0):
             file.write(song + "\n")
