@@ -1,5 +1,6 @@
 import smtplib
 from email.message import EmailMessage
+import FileHandling
 import os
 import subprocess
 import shutil
@@ -76,7 +77,8 @@ def copySongs(folder,outputFolder,randomizedList,widthNumber):
         destination = os.path.join(outputFolder,newSong)
         shutil.copy(origin, destination)
 
-def saveList(list0,outputFile):
+def saveList(list1,outputFile):
+    list0 = list1.copy()
     with open(outputFile, "r") as file:
         oldList = file.readlines()
         oldList = [line.strip() for line in oldList]
@@ -89,7 +91,8 @@ def saveList(list0,outputFile):
 
 
 def getSongs(folder,songNames):
-    mp3List = [file for file in os.listdir(folder) if file.endswith(".mp3")]
+    mp3List = FileHandling.findPatternFolder(folder,".mp3$")
+    print(mp3List)
 
     saveList(mp3List,songNames)
 

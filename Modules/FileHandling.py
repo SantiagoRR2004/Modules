@@ -1,5 +1,6 @@
 import os
 import csv
+import re
 from Modules import zipping
 
 def deleteFolder(path):
@@ -20,9 +21,8 @@ def createFolder(folder):
     else:
         emptyFolder(folder)
 
-def getImages(folder):
-    # Get a list of all JPEG files in the specified folder
-    image_files = [f for f in os.listdir(folder) if f.endswith(".jpg")]
+def findPatternFolder(folder, pattern):
+    image_files = [f for f in os.listdir(folder) if re.search(pattern,f)]
     numbers = [x[:-4] for x in image_files]
     image_files = [x for _,x in sorted(zip(numbers,image_files))]
     return image_files
