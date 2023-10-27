@@ -101,7 +101,7 @@ def create_cbz(images_folder, imagesList, output_cbz,temporalFolder = ".Temporal
         for image_file in imagesList: 
             FileHandling.copyFile(images_folder,image_file,temporalFolder,str(imagesList.index(image_file))+".jpg")
         images_folder = temporalFolder
-        imagesList = FileHandling.getImages(temporalFolder)
+        imagesList = FileHandling.findPatternFolder(temporalFolder,".jpg$")
 
     with zipfile.ZipFile(output_cbz, 'w', zipfile.ZIP_DEFLATED) as cbz:
         for image_file in imagesList:
@@ -137,7 +137,7 @@ def preparationForCBZ(manga,minimum,callerDirectory,division,naming):
     FileHandling.ensureExistance(pdfFolder)
 
     enumeration = FileHandling.openCsv(enumeration)
-    images = FileHandling.getImages(image_folder)
+    images = FileHandling.findPatternFolder(image_folder,".jpg$")
     divide = divider(images,enumeration,division,minimum)
 
     names = []
@@ -194,7 +194,8 @@ def copySongs(folder,outputFolder,randomizedList,widthNumber):
         destination = os.path.join(outputFolder,newSong)
         shutil.copy(origin, destination)
 
-def saveList(list0,outputFile):
+def saveList(list1,outputFile):
+    list0 = list1.copy()
     with open(outputFile, "r") as file:
         oldList = file.readlines()
         oldList = [line.strip() for line in oldList]
@@ -206,7 +207,8 @@ def saveList(list0,outputFile):
             file.write(song + "\n")
 
 def getSongs(folder,songNames):
-    mp3List = [file for file in os.listdir(folder) if file.endswith(".mp3")]
+    mp3List = FileHandling.findPatternFolder(folder,".mp3$")
+    print(mp3List)
 
     saveList(mp3List,songNames)
 
