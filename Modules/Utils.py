@@ -208,7 +208,6 @@ def saveList(list1,outputFile):
 
 def getSongs(folder,songNames):
     mp3List = FileHandling.findPatternFolder(folder,".mp3$")
-    print(mp3List)
 
     saveList(mp3List,songNames)
 
