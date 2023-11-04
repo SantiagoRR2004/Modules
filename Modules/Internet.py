@@ -18,6 +18,7 @@ def downloadImage(url, dest_file):
         time.sleep(random.uniform(0.1, 1))
 
 def configureChrome():
+    # pip install --upgrade selenium
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.binary_location = "/opt/google/chrome/google-chrome"
@@ -49,5 +50,8 @@ return images;
         src = img_element.get_attribute('src')
         if src and src.lower().endswith('.png'):
             png_image_urls.append(src)
+
+    remove = ["https://bidgear.com/images/close-icon.png"]
+    png_image_urls = [url for url in png_image_urls if url not in remove]
 
     return sorted(list(set(png_image_urls)))
