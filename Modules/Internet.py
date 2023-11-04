@@ -65,9 +65,20 @@ return images;
     return sorted(list(set(png_image_urls)))
 
 def mangasee123Downloader(manga,chapter,maxDownload,callerDirectory,skip=[],missing=[]):
+    mangaSpaces = manga.replace(" ", "")
+    mangaHyphens = manga.replace(" ", "-")
 
-    web = "https://mangasee123.com/rss/"+manga+".xml"
-    folder = os.path.join(callerDirectory,"."+manga+"JPG")
+    infofile = os.path.join(callerDirectory,"Manga.json")
+    mangaData = FileHandling.openJson(infofile)
+
+    if mangaData.get(mangaSpaces):
+        if mangaData.get(mangaSpaces).get("skip"):
+            skip = mangaData[mangaSpaces]["skip"]
+        if mangaData.get(mangaSpaces).get("missing"):
+            missing = mangaData[mangaSpaces]["missing"]
+
+    web = "https://mangasee123.com/rss/"+mangaHyphens+".xml"
+    folder = os.path.join(callerDirectory,"."+mangaSpaces+"JPG")
     urls = mangasee123UrlsXML(web)
 
     for x in skip:
