@@ -26,6 +26,7 @@ def mangasee123UrlsXML(web):
     return urls[::-1]
 
 def configureChrome():
+    # pip install --upgrade selenium
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.binary_location = "/opt/google/chrome/google-chrome"
@@ -58,6 +59,9 @@ return images;
         if src and src.lower().endswith('.png'):
             png_image_urls.append(src)
 
+    remove = ["https://bidgear.com/images/close-icon.png"]
+    png_image_urls = [url for url in png_image_urls if url not in remove]
+
     return sorted(list(set(png_image_urls)))
 
 def mangasee123Downloader(manga,chapter,maxDownload,callerDirectory,skip=[],missing=[]):
@@ -78,8 +82,16 @@ def mangasee123Downloader(manga,chapter,maxDownload,callerDirectory,skip=[],miss
         maxDownload = len(urls)
 
     if len(urls) < chapter:
-        print("There starting chapter is too high")
+        print("The starting chapter is too high")
         chapter = len(urls)
+
+    if chapter < 1:
+        print("The starting chapter can't be less than 1")
+        chapter = 1
+
+    if maxDownload < 1:
+        print("The last chapter can't be less than 1")
+        maxDownload = 1
 
     FileHandling.ensureExistance(folder)
     driver = configureChrome()
