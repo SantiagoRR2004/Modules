@@ -1,6 +1,7 @@
 import os
 import csv
 import re
+import json
 from Modules import zipping
 
 def deleteFolder(path):
@@ -49,3 +50,7 @@ def copyFile(sorceFolder,sourceFile,destinationFolder,destinationFile):
     with open(os.path.join(sorceFolder, sourceFile), 'rb') as source:
         with open(os.path.join(destinationFolder, destinationFile), 'wb') as destination:
             destination.write(source.read())
+
+def openJson(pathTocsv):
+    with open(pathTocsv, 'r') as jsonFile:
+        return json.load(jsonFile)
