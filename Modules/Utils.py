@@ -1,6 +1,6 @@
 import smtplib
 from email.message import EmailMessage
-import FileHandling
+from Modules import FileHandling
 import os
 import subprocess
 import shutil
