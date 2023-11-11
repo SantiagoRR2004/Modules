@@ -2,15 +2,12 @@ import smtplib
 from email.message import EmailMessage
 import os
 from PIL import Image
-import PyPDF2
-from reportlab.pdfgen import canvas
 import zipfile
 import subprocess
 import shutil
 import json
 from Modules import FileHandling
 from Modules import zipping
-#https://stackoverflow.com/questions/44375872/pypdf2-returning-blank-pdf-after-copy
 
 def send_notification(subject, body):
     sender = "???@????"
@@ -39,7 +36,8 @@ def send_notification(subject, body):
 
 def divider(images,classifier,key,minimum):
     toret = []
-    my_list = [x for i, x in enumerate(classifier[key]) if x not in classifier[key][:i]]
+    my_list = [x for i, x in enumerate(classifier[key]) if x not in classifier[key][:i] and not None]
+    my_list.remove(None)
     for i in my_list:
         segment = []
         for j in range(len(classifier[key])):
@@ -47,52 +45,6 @@ def divider(images,classifier,key,minimum):
                 segment.extend([x for x in images if x[:-7]==classifier[minimum][j]])
         toret.append(segment)
     return toret
-
-def convert_images_to_pdf(image_folder,imageList, output_pdf,temporalFolder = ".Temporal"):
-    FileHandling.ensureExistance(temporalFolder)
-
-    pdf_writer = PyPDF2.PdfWriter()
-    smallerPdfs = []
-
-
-    if not imageList:
-        FileHandling.deleteFolder(temporalFolder)
-        print("Can't create "+output_pdf) 
-        return False
-
-    cover = Image.open(os.path.join(image_folder, imageList[0]))
-    width =  cover.width
-
-    for image_file in imageList:
-        image_path = os.path.join(image_folder, image_file)
-
-        # Open each image file using PIL
-        image = Image.open(image_path)
-        pageNumber = round(image.width/width)
-
-        for i in range(pageNumber): # Number of pages in width
-            
-            fileName = temporalFolder+"/"+image_file[:-4]+str(i)+".pdf"
-            
-            pdf_page = canvas.Canvas(fileName, pagesize=(width, image.height))
-            pdf_page.drawImage(image_path, -i*width, 0, width=image.width, height=image.height)
-            pdf_page.showPage()
-            pdf_page.save()
-            
-            # We open the pdfs manually so empty pages don't appear
-            smallerPdfs.append(PyPDF2.PdfReader(open(fileName,"rb")))
-            # We don't close the pdfs manually
-
-    for pdf in smallerPdfs:
-        pdf_writer.add_page(pdf.pages[0])
-       
-    # Save the resulting PDF to the specified output path
-    with open(output_pdf, 'wb') as output:
-        pdf_writer.write(output)
-
-    FileHandling.deleteFolder(temporalFolder)
-
-    print(output_pdf+" created successfully!")
 
 def create_cbz(images_folder, imagesList, output_cbz,temporalFolder = ".Temporal"):
 
