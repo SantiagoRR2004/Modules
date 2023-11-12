@@ -36,8 +36,10 @@ def send_notification(subject, body):
 
 def divider(images,classifier,key,minimum):
     toret = []
-    my_list = [x for i, x in enumerate(classifier[key]) if x not in classifier[key][:i] and not None]
-    my_list.remove(None)
+    my_list = [x for i, x in enumerate(classifier[key]) if x not in classifier[key][:i]]
+    if None in my_list:
+        my_list.remove(None)
+
     for i in my_list:
         segment = []
         for j in range(len(classifier[key])):
