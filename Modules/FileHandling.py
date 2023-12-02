@@ -1,5 +1,4 @@
 import os
-import csv
 import re
 import json
 from Modules import zipping
@@ -27,15 +26,6 @@ def findPatternFolder(folder, pattern):
     numbers = [x[:-4] for x in image_files]
     image_files = [x for _,x in sorted(zip(numbers,image_files))]
     return image_files
-
-def openCsv(pathTocsv):
-    with open(pathTocsv, 'r') as file:
-        reader = csv.DictReader(file)
-        toret = {x:[] for x in reader.fieldnames}
-        for row in reader:
-            for head in reader.fieldnames:
-                toret[head].append(row[head])
-        return toret
 
 def ensureExistance(folder):
     if not os.path.exists(folder):
