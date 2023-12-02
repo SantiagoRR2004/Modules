@@ -7,6 +7,7 @@ import subprocess
 import shutil
 import json
 from Modules import FileHandling
+from Modules import CsvHandling
 from Modules import zipping
 
 def send_notification(subject, body):
@@ -90,7 +91,7 @@ def preparationForCBZ(manga,minimum,callerDirectory,division,naming):
     FileHandling.ensureExistance(image_folder)
     FileHandling.ensureExistance(pdfFolder)
 
-    enumeration = FileHandling.openCsv(enumeration)
+    enumeration = CsvHandling.openCsv(enumeration)
     images = FileHandling.findPatternFolder(image_folder,".jpg$")
     divide = divider(images,enumeration,division,minimum)
 

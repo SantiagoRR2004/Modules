@@ -1,5 +1,6 @@
 from Modules import Utils
 from Modules import FileHandling
+from Modules import CsvHandling
 from Modules import zipping
 import PyPDF2
 from reportlab.pdfgen import canvas
@@ -31,7 +32,7 @@ def preparationForPDF(manga,callerDirectory=os.path.join(os.getcwd(),"Manga"),di
     FileHandling.ensureExistance(image_folder)
     FileHandling.ensureExistance(pdfFolder)
 
-    enumeration = FileHandling.openCsv(enumeration)
+    enumeration = CsvHandling.openCsv(enumeration)
     images = FileHandling.findPatternFolder(image_folder,".jpg$")
     divide = Utils.divider(images,enumeration,division,minimum)
 
