@@ -1,5 +1,3 @@
-import smtplib
-from email.message import EmailMessage
 import os
 from PIL import Image
 import zipfile
@@ -9,31 +7,6 @@ import json
 from Modules import FileHandling
 from Modules import CsvHandling
 from Modules import zipping
-
-def send_notification(subject, body):
-    sender = "???@????"
-    receiver = ""
-
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg["Subject"] = subject
-    msg["From"] = sender
-    msg["To"] = receiver
-
-    smtp_server = "smtp.gmail.com"
-    smtp_port = 587
-    with open("Password.json", "r") as jsonFile:
-        data = json.load(jsonFile)
-    username = data["username"]
-    password = data["password"]
-    
-
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
-        server.ehlo()
-        server.starttls()
-        server.login(username, password)
-        server.send_message(msg)
-        print("Mail sent")
 
 def divider(images,classifier,key,minimum):
     toret = []
