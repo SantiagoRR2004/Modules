@@ -1,36 +1,8 @@
-import smtplib
-from email.message import EmailMessage
 from Modules import FileHandling
 import os
 import subprocess
 import shutil
 import json
-
-def send_notification(subject, body):
-    sender = "???@????"
-    receiver = ""
-
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg["Subject"] = subject
-    msg["From"] = sender
-    msg["To"] = receiver
-
-    smtp_server = "smtp.gmail.com"
-    smtp_port = 587
-    with open("Password.json", "r") as jsonFile:
-        data = json.load(jsonFile)
-    username = data["username"]
-    password = data["password"]
-    
-
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
-        server.ehlo()
-        server.starttls()
-        server.login(username, password)
-        server.send_message(msg)
-        print("Mail sent")
-
 
 def calculatePercentage(strings):
     counts = {}  # Dictionary to store string counts
