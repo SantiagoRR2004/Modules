@@ -19,7 +19,7 @@ def send_notification(subject, body, receivers = None, carbonCopy = None, hidden
     if hiddenCarbonCopy:
         msg["BCC"] = ", ".join(hiddenCarbonCopy)
 
-    elif not(receivers and carbonCopy and hiddenCarbonCopy):
+    elif not(receivers or carbonCopy or hiddenCarbonCopy):
         msg["To"] = ""
 
     smtp_server = "smtp.gmail.com"
