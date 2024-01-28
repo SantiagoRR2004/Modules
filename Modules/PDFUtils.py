@@ -6,6 +6,7 @@ import PyPDF2
 from reportlab.pdfgen import canvas
 from PIL import Image
 import os
+from collections import Counter
 #https://stackoverflow.com/questions/44375872/pypdf2-returning-blank-pdf-after-copy
 
 def preparationForPDF(manga,callerDirectory=os.path.join(os.getcwd(),"Manga"),division="",minimum="Title",inversion=False,numeration=False):
@@ -60,6 +61,7 @@ def convertImagesToPDF(image_folder,imageList, output_pdf,temporalFolder = ".Tem
 
     cover = Image.open(os.path.join(image_folder, imageList[0]))
     width =  cover.width
+    width = Counter([Image.open(os.path.join(image_folder, x)).width for x in imageList]).most_common(1)[0][0]
 
     for image_file in imageList:
         image_path = os.path.join(image_folder, image_file)
