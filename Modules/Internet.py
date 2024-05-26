@@ -72,10 +72,10 @@ def mangasee123Downloader(manga,chapter,maxDownload,callerDirectory,skip=[],miss
     mangaData = FileHandling.openJson(infofile)
 
     if mangaData.get(mangaSpaces):
-        if mangaData.get(mangaSpaces).get("skip"):
-            skip = mangaData[mangaSpaces]["skip"]
-        if mangaData.get(mangaSpaces).get("missing"):
-            missing = mangaData[mangaSpaces]["missing"]
+        if mangaData.get(mangaHyphens).get("skip"):
+            skip = mangaData[mangaHyphens]["skip"]
+        if mangaData.get(mangaHyphens).get("missing"):
+            missing = mangaData[mangaHyphens]["missing"]
 
     web = "https://mangasee123.com/rss/"+mangaHyphens+".xml"
     folder = os.path.join(callerDirectory,"."+mangaSpaces+"JPG")
