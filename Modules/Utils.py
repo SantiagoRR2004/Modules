@@ -151,3 +151,35 @@ def getSongs(folder,songNames):
     mp3List = [song for song in mp3List if song not in elements]
 
     return mp3List
+
+def confirmImports(modules:list)->None:
+    """
+    This function will check if the modules are installed;
+    if they are not it will try to install them.
+
+    Might need to change this if pip stops working.
+    Added --break-system-packages for newer ubuntu versions.
+    
+    Args:
+        modules (list): List of modules to check if they are installed.
+    
+    Returns:
+        None
+    """
+    import importlib.util
+    for module in modules:
+        if not importlib.util.find_spec(module):
+            # Should try to use runTerminal
+            import subprocess
+            try:
+                process = subprocess.run(f"pip install {module}", shell=True, text=True, capture_output=True)
+                if process.returncode != 0:
+                    raise Exception(process.stderr)
+                else:
+                    print(process.stdout)
+            except Exception as e:
+                process = subprocess.run(f"pip install {module} --break-system-packages", shell=True, text=True, capture_output=True)
+                if process.returncode != 0:
+                    raise Exception(process.stderr)
+                else:
+                    print(process.stdout)
