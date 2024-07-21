@@ -152,7 +152,7 @@ def getSongs(folder,songNames):
 
     return mp3List
 
-def confirmImports(modules:list)->None:
+def confirmImports(modules:dict)->None:
     """
     This function will check if the modules are installed;
     if they are not it will try to install them.
@@ -161,14 +161,15 @@ def confirmImports(modules:list)->None:
     Added --break-system-packages for newer ubuntu versions.
     
     Args:
-        modules (list): List of modules to check if they are installed.
+        modules (dict): A dictionary with the module name in python as
+        the key and the module name from pip as the value.
     
     Returns:
         None
     """
     import importlib.util
-    for module in modules:
-        if not importlib.util.find_spec(module):
+    for pythonName, module in modules.items():
+        if not importlib.util.find_spec(pythonName):
             # Should try to use runTerminal
             import subprocess
             try:
