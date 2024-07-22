@@ -24,7 +24,8 @@ def send_notification(subject, body, receivers = None, carbonCopy = None, hidden
 
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
-    import os\n    data = FileHandling.openJson(os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "Password.json"))
+    import os
+    data = FileHandling.openJson(os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "Password.json"))
     username = data["username"]
     msg["From"] = username
     password = data["password"]
@@ -44,7 +45,8 @@ def sendMail(smtpServer, smtpPort, username, password, message):
 def notCheckIfAlready(message):
 
     # Set your email and password
-    import os\n    data = FileHandling.openJson(os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "Password.json"))
+    import os
+    data = FileHandling.openJson(os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "Password.json"))
     email_address = data["username"]
     password = data["password"]
 
