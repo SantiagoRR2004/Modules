@@ -3,12 +3,14 @@ import imaplib
 import email
 from Modules import FileHandling
 import datetime
+import os
 
 
 def send_notification(subject, body, receivers = None, carbonCopy = None, hiddenCarbonCopy = None):
     msg = email.message.EmailMessage()
     msg.set_content(body)
     msg["Subject"] = subject
+    data = FileHandling.openJson(os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "Password.json"))
 
     if receivers:
         msg["To"] = ", ".join(receivers)
@@ -18,14 +20,13 @@ def send_notification(subject, body, receivers = None, carbonCopy = None, hidden
 
     if hiddenCarbonCopy:
         msg["BCC"] = ", ".join(hiddenCarbonCopy)
-
+        
     elif not(receivers or carbonCopy or hiddenCarbonCopy):
-        msg["To"] = ""
+        msg["To"] = data["reciever"]
 
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
-    import os
-    data = FileHandling.openJson(os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "Password.json"))
+    
     username = data["username"]
     msg["From"] = username
     password = data["password"]
@@ -45,7 +46,6 @@ def sendMail(smtpServer, smtpPort, username, password, message):
 def notCheckIfAlready(message):
 
     # Set your email and password
-    import os
     data = FileHandling.openJson(os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "Password.json"))
     email_address = data["username"]
     password = data["password"]
