@@ -6,7 +6,7 @@ import datetime
 import os
 
 
-def send_notification(subject, body, receivers = None, carbonCopy = None, hiddenCarbonCopy = None):
+def send_notification(subject:str, body:str, receivers:list = None, carbonCopy:list = None, hiddenCarbonCopy:list = None):
     msg = email.message.EmailMessage()
     msg.set_content(body)
     msg["Subject"] = subject
@@ -19,9 +19,12 @@ def send_notification(subject, body, receivers = None, carbonCopy = None, hidden
         msg["CC"] = ", ".join(carbonCopy)
 
     if hiddenCarbonCopy:
+        hiddenCarbonCopy.append(data["reciever"])
         msg["BCC"] = ", ".join(hiddenCarbonCopy)
+    else:
+        msg["BCC"] = data["reciever"]
         
-    elif not(receivers or carbonCopy or hiddenCarbonCopy):
+    if not(receivers or carbonCopy or hiddenCarbonCopy):
         msg["To"] = data["reciever"]
 
     smtp_server = "smtp.gmail.com"
