@@ -184,3 +184,22 @@ def confirmImports(modules:dict)->None:
                     raise Exception(process.stderr)
                 else:
                     print(process.stdout)
+
+def addNewCronTasks(newTasks:list) -> None:
+    """
+    This function will add new tasks to the crontab
+    without deleting the old ones.
+
+    Args:
+        newTasks (list): A list of strings with the new tasks.
+
+    Returns:
+        None
+    """
+    result = subprocess.run(['crontab', '-l'], capture_output=True, text=True, check=True)
+
+    if not result.stderr:
+        oldTasks = result.stdout.split("\n")
+        for task in newTasks:
+            if task not in oldTasks:
+                runTerminal(f"(crontab -l; echo '{task}') | crontab -")
