@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 BASE = "https://github.com"
+COLOR = "#852fa4"
 
 
 def getCorrectURL(username):
