@@ -77,7 +77,7 @@ def filldates(start,end):
             if end["day"] >= start["day"]:
                 end["month"] = start["month"]
             else:
-                end["month"] = find_next_month(end["month"])
+                end["month"] = find_next_month(start["month"])
 
 
     if "year" not in start or "year" not in end:
