@@ -16,16 +16,17 @@ def createHTML(graph: nx.DiGraph) -> str:
     Returns:
         str: The HTML.
     """
-    net = Network(directed=True)
+    net = Network(directed=True, filter_menu=True, cdn_resources="remote")
+    net.set_edge_smooth("dynamic")
 
     for node, attributes in graph.nodes(data=True):
         # Need to add the standard size of from_nx
         net.add_node(node, **attributes, size=10)
 
-    for u, v in graph.edges():
+    for u, v, attributes in graph.edges(data=True):
         if (v, u) not in graph.edges():
             # Not bidirectional we add the edge
-            net.add_edge(u, v)
+            net.add_edge(u, v, **attributes)
         elif u < v:
             # Visible in bidirectional without arrow
 
@@ -42,10 +43,14 @@ def createHTML(graph: nx.DiGraph) -> str:
                 color=colorHex,
                 arrows="'to' and 'from' but not m1ddle",
                 # https://github.com/WestHealth/pyvis/issues/99
+                **attributes,
             )
         else:
-            # We add the edge as hidden so the physics are the same
-            net.add_edge(v, u, hidden=True)
+            """
+            We don't add the edge so it
+            doesn't have to do more physics
+            """
+            pass
 
     net.show_buttons(filter_=["physics"])
     return net.generate_html()
