@@ -4,35 +4,76 @@ from urllib.parse import urljoin
 
 BASE = "https://github.com"
 COLOR = "#852fa4"
+NUMBERCALLS = 0
 
 
-def getCorrectURL(username):
+def getCorrectURL(username: str) -> str:
+    """
+    Get the correct URL for a GitHub user
+
+    It will return the URL with the BASE if it doesn't have it.
+
+    Args:
+        - username (str): The username to check.
+
+    Returns:
+        - str: The correct URL.
+    """
     if not username.startswith(BASE):
         return urljoin(BASE, username)
     return username
 
 
-def getFollowers(username):
+def getFollowers(username: str) -> list:
+    """
+    Get the followers of a GitHub user
 
+    Args:
+        - username (str): The username to check.
+
+    Returns:
+        - list: The list of URLs for the followers.
+    """
     web = getCorrectURL(username)
 
     return getConnection(f"{web}?tab=followers")
 
 
-def getFollowing(username):
+def getFollowing(username: str) -> list:
+    """
+    Get the people that a GitHub user follows
 
+    Args:
+        - username (str): The username to check.
+
+    Returns:
+        - list: The list of URLs for the people followed.
+    """
     web = getCorrectURL(username)
 
     return getConnection(f"{web}?tab=following")
 
 
-def getConnection(url):
+def getConnection(url: str) -> list:
+    """
+    Get the people that are in a connection with a GitHub user
+
+    It can be the followers or the people followed.
+
+    Args:
+        - url (str): The URL to check.
+
+    Returns:
+        - list: The list of URLs for the people in the connection.
+    """
     # Initialize an empty list to store the URLs of each
     people = []
+    global NUMBERCALLS
 
     while url:
 
         response = requests.get(url)
+        NUMBERCALLS += 1
         if response.status_code == 200:
             # First we get the body of the page
             soup = BeautifulSoup(response.text, "html.parser")
@@ -62,3 +103,126 @@ def getConnection(url):
             url = None
 
     return people
+
+
+def getRepositories(username: str) -> list:
+    """
+    Get the repositories of a GitHub user
+
+    It will return them in the format:
+        - https://github.com/username/repoName
+
+    Args:
+        - username (str): The username to check.
+
+    Returns:
+        - list: The list of URLs for the repositories.
+    """
+    username = getCorrectURL(username)
+
+    url = f"{username}?tab=repositories"
+
+    response = requests.get(url)
+    global NUMBERCALLS
+    NUMBERCALLS += 1
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    # Get the repositories
+    repoBlocks = soup.find_all("h3", class_="wb-break-all")
+
+    # Extract the url of the repositories
+    repositories = [
+        urljoin(f"{username}/", repo.find("a").text)
+        for repo in repoBlocks
+        if repo.find("a")
+    ]
+
+    return repositories
+
+
+def getContributors(repo: str) -> list:
+    """
+    Get the contributors of a GitHub repository
+
+    It uses the GitHub API to get the contributors.
+
+    This means it shouldn't be used too much.
+    It checks if there are contributors before using the API.
+    It stops searching when the page is not filled
+    up to 30 contributors.
+
+    It will return them in the format:
+        - https://github.com/username
+
+    Args:
+        - repo (str): The repository to check.
+
+    Returns:
+        - list: The list of URLs for the contributors.
+    """
+    url = getCorrectURL(repo)
+    global NUMBERCALLS
+
+    # First we check that there are contributors to not use the API
+    response = requests.get(url)
+    NUMBERCALLS += 1
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    if not "Contributors" in soup.text:
+        return []
+
+    repoUserAndName = "/".join(url.split("/")[-2:])
+
+    contributors = []
+
+    number = 1
+
+    contributorsUrl = f"https://api.github.com/repos/{repoUserAndName}/contributors"
+
+    url = f"{contributorsUrl}?page={number}"
+
+    response = requests.get(url)
+    NUMBERCALLS += 1
+
+    while response.status_code == 200 and response.json():
+
+        for i in response.json():
+            # We get the URL of the contributor
+            contributors.append(i["html_url"])
+
+        if len(response.json()) < 30:
+            # If there are less than 30 contributors, we have reached the end
+            # We don't continue to reduce the number of API calls
+            break
+
+        else:
+            number += 1
+
+            url = f"{contributorsUrl}?page={number}"
+            response = requests.get(url)
+            NUMBERCALLS += 1
+
+    return contributors
+
+
+def getRealUrlFromAPI(url: str) -> str:
+    """
+    Get the real URL from a GitHub API URL
+
+    It will return the real URL that is in
+    the "html_url" key of the JSON response.
+
+    The given URL must be a GitHub API URL.
+
+    Args:
+        - url (str): The URL to check.
+
+    Returns:
+        - str: The real URL.
+    """
+    response = requests.get(url)
+    global NUMBERCALLS
+    NUMBERCALLS += 1
+    return response.json()["html_url"]
+
+
