@@ -7,21 +7,21 @@ COLOR = "#852fa4"
 NUMBERCALLS = 0
 
 
-def getCorrectURL(username: str) -> str:
+def getCorrectURL(url: str) -> str:
     """
-    Get the correct URL for a GitHub user
+    Get the correct URL for a GitHub link
 
     It will return the URL with the BASE if it doesn't have it.
 
     Args:
-        - username (str): The username to check.
+        - url (str): The url to check.
 
     Returns:
         - str: The correct URL.
     """
-    if not username.startswith(BASE):
-        return urljoin(BASE, username)
-    return username
+    if not url.startswith(BASE):
+        return urljoin(BASE, url)
+    return url
 
 
 def getFollowers(username: str) -> list:
@@ -226,3 +226,36 @@ def getRealUrlFromAPI(url: str) -> str:
     return response.json()["html_url"]
 
 
+def getRepositoryParent(url: str) -> str:
+    """
+    Get the parent repository of a forked repository
+
+    It will return the parent repository URL or None
+    if the repository is not a fork.
+
+    The given URL must be a GitHub repository URL.
+
+    Args:
+        - url (str): The URL to check.
+
+    Returns:
+        - str: The parent repository URL.
+    """
+    repository = getCorrectURL(url)
+
+    response = requests.get(repository)
+    global NUMBERCALLS
+    NUMBERCALLS += 1
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    parent = None
+
+    parentLinkMeta = soup.find(
+        "meta", {"name": "octolytics-dimension-repository_parent_nwo"}
+    )
+
+    if parentLinkMeta:
+        parentRepository = parentLinkMeta["content"]
+        parent = urljoin(BASE, parentRepository)
+
+    return parent
