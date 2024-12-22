@@ -259,3 +259,54 @@ def getRepositoryParent(url: str) -> str:
         parent = urljoin(BASE, parentRepository)
 
     return parent
+
+
+def getStarredRepositories(username: str) -> list:
+    """
+    Get the starred repositories of a GitHub user
+
+    It will return them in the format:
+        - https://github.com/username/repoName
+
+    Args:
+        - username (str): The username to check.
+
+    Returns:
+        - list: The list of URLs for the starred repositories.
+    """
+    username = getCorrectURL(username)
+    global NUMBERCALLS
+
+    url = f"{username}?tab=stars"
+
+    repositories = []
+
+    while url:
+        response = requests.get(url)
+        NUMBERCALLS += 1
+
+        # First we get the body of the page
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # Loop through each 'div' element with the class 'col-12 d-block width-full py-4 border-bottom color-border-muted' in the HTML content
+        repoContainers = soup.find_all(
+            "div",
+            class_="col-12 d-block width-full py-4 border-bottom color-border-muted",
+        )
+        for container in repoContainers:
+            link = container.find("h3").find("a")["href"]
+            if link:
+                # If found, add the value of the 'href' attribute (the URL) to the people list
+                repositories.append(link)
+
+        # Find the 'Next' button link to go to the next page of followers
+        next_page = soup.find("a", string="Next")
+
+        if next_page:
+            # If there is a 'Next' link, update the URL to the next page
+            url = urljoin(BASE, next_page["href"])
+        else:
+            # No more pages, break the loop
+            url = None
+
+    return repositories
