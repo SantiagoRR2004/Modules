@@ -119,23 +119,35 @@ def getRepositories(username: str) -> list:
         - list: The list of URLs for the repositories.
     """
     username = getCorrectURL(username)
+    global NUMBERCALLS
 
     url = f"{username}?tab=repositories"
 
-    response = requests.get(url)
-    global NUMBERCALLS
-    NUMBERCALLS += 1
-    soup = BeautifulSoup(response.text, "html.parser")
+    repositories = []
 
-    # Get the repositories
-    repoBlocks = soup.find_all("h3", class_="wb-break-all")
+    while url:
+        response = requests.get(url)
+        NUMBERCALLS += 1
 
-    # Extract the url of the repositories
-    repositories = [
-        urljoin(f"{username}/", repo.find("a").text)
-        for repo in repoBlocks
-        if repo.find("a")
-    ]
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # Get the repositories
+        repoBlocks = soup.find_all("h3", class_="wb-break-all")
+
+        # Extract the url of the repositories
+        for repo in repoBlocks:
+            if repo.find("a"):
+                repositories.append(urljoin(f"{username}/", repo.find("a").text))
+
+        # Find the 'Next' button link to go to the next page of repositories
+        next_page = soup.find("a", string="Next")
+
+        if next_page:
+            # If there is a 'Next' link, update the URL to the next page
+            url = urljoin(BASE, next_page["href"])
+        else:
+            # No more pages, break the loop
+            url = None
 
     return repositories
 
