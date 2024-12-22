@@ -86,3 +86,51 @@ def addContributors(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
                 pass
 
     return graph
+
+
+def addParentsToRepository(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+    """
+    If the repository is a fork, we add the parent to the graph.
+
+    We mark "searchData" with the key "githubParent" so we don't
+    have to search it again.
+
+    We continue adding until we have the repositories
+    that are not forks.
+
+    Args:
+        - graph (nx.MultiDiGraph): The graph to be modified.
+
+    Returns:
+        nx.MultiDiGraph: The graph with the parents.
+    """
+    nodes, attributeList = zip(*graph.nodes(data=True))
+
+    for node, attributes in zip(nodes, attributeList):
+        if "Repository" in attributes["type"]:
+            if not attributes.get("searchData", False) or not attributes[
+                "searchData"
+            ].get("githubParent", False):
+                parent = github.getRepositoryParent(node)
+
+                if parent:
+                    if parent not in graph.nodes():
+                        graph.add_node(
+                            parent, type=("GitHub", "Repository"), color="blue"
+                        )
+                    graph.add_edge(parent, node)
+
+                if attributes.get("searchData", False):
+                    graph.nodes[node]["searchData"]["githubParent"] = True
+                else:
+                    graph.nodes[node]["searchData"] = {"githubParent": True}
+
+            else:
+                # We have already added the parent
+                pass
+
+    if len(nodes) != len(graph.nodes()):
+        # We have added a new node
+        graph = addParentsToRepository(graph)
+
+    return graph
