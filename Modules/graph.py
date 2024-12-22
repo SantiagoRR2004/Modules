@@ -3,7 +3,7 @@ from PIL import ImageColor
 import networkx as nx
 
 
-def createHTML(graph: nx.DiGraph) -> str:
+def createHTML(graph: nx.MultiDiGraph) -> str:
     """
     Create a HTML file from a graph object.
     It is made for directed graphs.
@@ -16,6 +16,8 @@ def createHTML(graph: nx.DiGraph) -> str:
     Returns:
         str: The HTML.
     """
+    graph = removeDuplicateEdges(graph)
+
     net = Network(directed=True, filter_menu=True, cdn_resources="remote")
     net.set_edge_smooth("dynamic")
 
@@ -27,6 +29,14 @@ def createHTML(graph: nx.DiGraph) -> str:
         if (v, u) not in graph.edges():
             # Not bidirectional we add the edge
             net.add_edge(u, v, **attributes)
+        # elif (u, v) in net.edges():
+        #     # If it has already been added with the same properties
+        #     print(net.edges[(u, v)])
+        #     if net.edges[(u, v)] == attributes:
+        #         pass
+        #     else:
+        #         # If it hasn't been added with the same properties
+        #         net.add_edge(u, v, **attributes)
         elif u < v:
             # Visible in bidirectional without arrow
 
@@ -54,3 +64,31 @@ def createHTML(graph: nx.DiGraph) -> str:
 
     net.show_buttons(filter_=["physics"])
     return net.generate_html()
+
+
+def removeDuplicateEdges(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+    """
+    Remove the duplicate edges from a graph.
+    For an edge to be considered a duplicate, it must have the same
+    source and target nodes and the same attributes.
+
+    Args:
+        - graph (nx.MultiDiGraph): The graph to be cleaned.
+
+    Returns:
+        nx.MultiDiGraph: The cleaned graph.
+    """
+    cleanedGraph = nx.MultiDiGraph()
+
+    # First we add the nodes
+    cleanedGraph.add_nodes_from(graph.nodes(data=True))
+
+    seen = set()
+
+    for u, v, attributes in graph.edges(data=True):
+        eTuple = (u, v, tuple(attributes.items()))
+        if eTuple not in seen:
+            seen.add(eTuple)
+            cleanedGraph.add_edge(u, v, **attributes)
+
+    return cleanedGraph
