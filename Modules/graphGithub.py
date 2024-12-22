@@ -182,3 +182,44 @@ def addUserConnections(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
                 pass
 
     return graph
+
+
+def addStarredRepositories(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+    """
+    Add the starred repositories for all the nodes that have
+    the type "User" in the graph. It adds the starred repositories
+    as their url.
+
+    When we have found all the starred repositories of a user, we mark it
+    in the attribute "searchData" with the key "githubStarred"
+
+    Args:
+        - graph (nx.MultiDiGraph): The graph to be modified.
+
+    Returns:
+        nx.MultiDiGraph: The graph with the starred repositories.
+    """
+    nodes, attributeList = zip(*graph.nodes(data=True))
+
+    for node, attributes in zip(nodes, attributeList):
+        if "User" in attributes["type"]:
+            if not attributes.get("searchData", False) or not attributes[
+                "searchData"
+            ].get("githubStarred", False):
+                starred = github.getStarredRepositories(node)
+
+                for s in starred:
+                    if s not in graph.nodes():
+                        graph.add_node(s, type=("GitHub", "Repository"), color="blue")
+                    graph.add_edge(node, s)
+
+                if attributes.get("searchData", False):
+                    graph.nodes[node]["searchData"]["githubStarred"] = True
+                else:
+                    graph.nodes[node]["searchData"] = {"githubStarred": True}
+
+            else:
+                # We have already added the starred repositories
+                pass
+
+    return graph
