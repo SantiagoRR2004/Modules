@@ -118,7 +118,7 @@ def addParentsToRepository(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
                         graph.add_node(
                             parent, type=("GitHub", "Repository"), color="blue"
                         )
-                    graph.add_edge(parent, node)
+                    graph.add_edge(node, parent)
 
                 if attributes.get("searchData", False):
                     graph.nodes[node]["searchData"]["githubParent"] = True
