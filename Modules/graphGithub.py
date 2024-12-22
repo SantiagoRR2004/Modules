@@ -32,7 +32,7 @@ def addRepositories(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
                         graph.add_node(
                             repo, type=("GitHub", "Repository"), color="blue"
                         )
-                        graph.add_edge(node, repo)
+                    graph.add_edge(node, repo)
 
                 if attributes.get("searchData", False):
                     graph.nodes[node]["searchData"]["ownedGitHubRepositories"] = True
@@ -74,7 +74,7 @@ def addContributors(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
                 for c in contributors:
                     if c not in graph.nodes():
                         graph.add_node(c, type=("GitHub", "User"), color=github.COLOR)
-                        graph.add_edge(c, node)
+                    graph.add_edge(c, node)
 
                 if attributes.get("searchData", False):
                     graph.nodes[node]["searchData"]["githubContributors"] = True
