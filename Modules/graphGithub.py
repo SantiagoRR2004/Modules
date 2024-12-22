@@ -134,3 +134,51 @@ def addParentsToRepository(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
         graph = addParentsToRepository(graph)
 
     return graph
+
+
+def addUserConnections(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+    """
+    Add the followers and following for all the nodes that have
+    the type "User" in the graph. It adds the followers
+    as their url.
+
+    When we have found all the followers of a user, we mark it
+    in the attribute "searchData" with the key "githubFollow"
+
+    Args:
+        - graph (nx.MultiDiGraph): The graph to be modified.
+
+    Returns:
+        nx.MultiDiGraph: The graph with the followers.
+    """
+    nodes, attributeList = zip(*graph.nodes(data=True))
+
+    for node, attributes in zip(nodes, attributeList):
+        if "User" in attributes["type"]:
+            if not attributes.get("searchData", False) or not attributes[
+                "searchData"
+            ].get("githubFollow", False):
+                followers = github.getFollowers(node)
+
+                for f in followers:
+                    if f not in graph.nodes():
+                        graph.add_node(f, type=("GitHub", "User"), color=github.COLOR)
+                    graph.add_edge(f, node)
+
+                following = github.getFollowing(node)
+
+                for f in following:
+                    if f not in graph.nodes():
+                        graph.add_node(f, type=("GitHub", "User"), color=github.COLOR)
+                    graph.add_edge(node, f)
+
+                if attributes.get("searchData", False):
+                    graph.nodes[node]["searchData"]["githubFollow"] = True
+                else:
+                    graph.nodes[node]["searchData"] = {"githubFollow": True}
+
+            else:
+                # We have already added the followers
+                pass
+
+    return graph
