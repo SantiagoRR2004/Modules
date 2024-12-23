@@ -95,8 +95,8 @@ def addParentsToRepository(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     We mark "searchData" with the key "githubParent" so we don't
     have to search it again.
 
-    We continue adding until we have the repositories
-    that are not forks.
+    When we find a repository that is a fork we continue
+    up the chain until we have added the original repository.
 
     Args:
         - graph (nx.MultiDiGraph): The graph to be modified.
@@ -107,31 +107,36 @@ def addParentsToRepository(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     nodes, attributeList = zip(*graph.nodes(data=True))
 
     for node, attributes in zip(nodes, attributeList):
-        if "Repository" in attributes["type"]:
-            if not attributes.get("searchData", False) or not attributes[
-                "searchData"
-            ].get("githubParent", False):
-                parent = github.getRepositoryParent(node)
+        tempNode, tempAttributes = node, attributes
+        continueFlag = True
+
+        while continueFlag:
+
+            if "Repository" in tempAttributes["type"] and (
+                not tempAttributes.get("searchData", False)
+                or not tempAttributes["searchData"].get("githubParent", False)
+            ):
+                parent = github.getRepositoryParent(tempNode)
 
                 if parent:
                     if parent not in graph.nodes():
                         graph.add_node(
                             parent, type=("GitHub", "Repository"), color="blue"
                         )
-                    graph.add_edge(node, parent)
+                    graph.add_edge(tempNode, parent)
 
-                if attributes.get("searchData", False):
-                    graph.nodes[node]["searchData"]["githubParent"] = True
+                if tempAttributes.get("searchData", False):
+                    graph.nodes[tempNode]["searchData"]["githubParent"] = True
                 else:
-                    graph.nodes[node]["searchData"] = {"githubParent": True}
+                    graph.nodes[tempNode]["searchData"] = {"githubParent": True}
+
+                if parent:
+                    tempNode = parent
+                    tempAttributes = graph.nodes[parent]
 
             else:
-                # We have already added the parent
-                pass
-
-    if len(nodes) != len(graph.nodes()):
-        # We have added a new node
-        graph = addParentsToRepository(graph)
+                # We have already added the parent or it was a user
+                continueFlag = False
 
     return graph
 
