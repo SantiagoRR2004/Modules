@@ -202,3 +202,30 @@ def removeUnconnectedNodes(
     )
 
     return cleanedGraph
+
+
+def removeDirectConnections(
+    graph: nx.MultiDiGraph, desiredType: str = "Known"
+) -> nx.MultiDiGraph:
+    """
+    Removes the direct connections between nodes of the desiredType.
+
+    Args:
+        - graph (nx.MultiDiGraph): The graph to be cleaned.
+        - desiredType (str): The desiredType of the nodes to be kept.
+
+    Returns:
+        nx.MultiDiGraph: The cleaned graph.
+    """
+    cleanedGraph = copy.deepcopy(graph)
+
+    cleanedGraph.remove_edges_from(
+        [
+            edge
+            for edge in cleanedGraph.edges()
+            if desiredType in cleanedGraph.nodes[edge[0]]["type"]
+            and desiredType in cleanedGraph.nodes[edge[1]]["type"]
+        ]
+    )
+
+    return cleanedGraph
