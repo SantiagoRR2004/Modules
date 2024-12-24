@@ -12,6 +12,8 @@ def addRepositories(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     in the attribute "searchData" with the key "ownedGitHubRepositories"
     so we don't have to search it again.
 
+    We also mark the repository with the key "githubOwner".
+
     Args:
         - graph (nx.MultiDiGraph): The graph to be modified.
 
@@ -33,6 +35,12 @@ def addRepositories(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
                             repo, type=("GitHub", "Repository"), color="blue"
                         )
                     graph.add_edge(node, repo)
+
+                    # We also need to add that we know the owner of the repository
+                    if not graph.nodes[repo].get("searchData", False):
+                        graph.nodes[repo]["searchData"] = {"githubOwner": True}
+                    else:
+                        graph.nodes[repo]["searchData"]["githubOwner"] = True
 
                 if attributes.get("searchData", False):
                     graph.nodes[node]["searchData"]["ownedGitHubRepositories"] = True
@@ -226,5 +234,43 @@ def addStarredRepositories(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
             else:
                 # We have already added the starred repositories
                 pass
+
+    return graph
+
+
+def addOwners(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+    """
+    Add the owner of the repository to the graph.
+
+    When we have found the owner of a repository, we mark it
+    in the attribute "searchData" with the key "githubOwner"
+
+    Args:
+        - graph (nx.MultiDiGraph): The graph to be modified.
+
+    Returns:
+        nx.MultiDiGraph: The graph with the owners.
+    """
+    nodes, attributeList = zip(*graph.nodes(data=True))
+
+    for node, attributes in zip(nodes, attributeList):
+        if "Repository" in attributes["type"] and (
+            not attributes.get("searchData", False)
+            or not attributes["searchData"].get("githubOwner", False)
+        ):
+            owner = github.getOwner(node)
+
+            if owner not in graph.nodes():
+                graph.add_node(owner, type=("GitHub", "User"), color=github.COLOR)
+            graph.add_edge(owner, node)
+
+            if attributes.get("searchData", False):
+                graph.nodes[node]["searchData"]["githubOwner"] = True
+            else:
+                graph.nodes[node]["searchData"] = {"githubOwner": True}
+
+        else:
+            # We have already added the owner or it was a user
+            pass
 
     return graph

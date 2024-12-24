@@ -322,3 +322,23 @@ def getStarredRepositories(username: str) -> list:
             url = None
 
     return repositories
+
+
+def getOwner(repository: str) -> str:
+    """
+    Get the owner of a GitHub repository
+
+    It will return the owner URL in the format:
+        - https://github.com/username
+
+    Args:
+        - repository (str): The repository to check.
+
+    Returns:
+        - str: The URL for the owner.
+    """
+    repository = getCorrectURL(repository)
+
+    # We just need to eliminate the last part of the URL
+
+    return "/".join(repository.split("/")[:-1])
