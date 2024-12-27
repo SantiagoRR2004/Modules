@@ -274,3 +274,42 @@ def addOwners(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
             pass
 
     return graph
+
+
+def addStargazers(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+    """
+    Add the stargazers of the repositories to the graph.
+
+    When we have found the stargazers of a repository, we mark it
+    in the attribute "searchData" with the key "githubStargazers"
+
+    Args:
+        - graph (nx.MultiDiGraph): The graph to be modified.
+
+    Returns:
+        nx.MultiDiGraph: The graph with the stargazers.
+    """
+    nodes, attributeList = zip(*graph.nodes(data=True))
+
+    for node, attributes in zip(nodes, attributeList):
+        if "Repository" in attributes["type"] and (
+            not attributes.get("searchData", False)
+            or not attributes["searchData"].get("githubStargazers", False)
+        ):
+            stargazers = github.getStargazers(node)
+
+            for s in stargazers:
+                if s not in graph.nodes():
+                    graph.add_node(s, type=("GitHub", "User"), color=github.COLOR)
+                graph.add_edge(s, node)
+
+            if attributes.get("searchData", False):
+                graph.nodes[node]["searchData"]["githubStargazers"] = True
+            else:
+                graph.nodes[node]["searchData"] = {"githubStargazers": True}
+
+        else:
+            # We have already added the stargazers or it was a user
+            pass
+
+    return graph

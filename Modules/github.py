@@ -342,3 +342,57 @@ def getOwner(repository: str) -> str:
     # We just need to eliminate the last part of the URL
 
     return "/".join(repository.split("/")[:-1])
+
+
+def getStargazers(repository: str) -> list:
+    """
+    Get the stargazers of a GitHub repository
+
+    It will return them in the format:
+        - https://github.com/username
+
+    You can't go further that the 100 pages of stargazers.
+    So it will return at most 4800 stargazers.
+
+    Args:
+        - repository (str): The repository to check.
+
+    Returns:
+        - list: The list of URLs for the stargazers.
+    """
+    repository = getCorrectURL(repository)
+    global NUMBERCALLS
+
+    url = urljoin(f"{repository}/", "stargazers")
+
+    stargazers = set()
+
+    while url:
+        response = requests.get(url)
+        NUMBERCALLS += 1
+
+        # First we get the body of the page
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # Find the <ol> element with the specified class
+        stargazersBlock = soup.find(
+            "ol", class_="d-block d-md-flex flex-wrap gutter list-style-none"
+        )
+
+        if stargazersBlock:
+            for a in stargazersBlock.find_all("a", href=True):
+                if (
+                    a.get("data-hovercard-type") == "user"
+                ):  # Check if the link has the "data-hovercard-type" attribute set to "user"
+                    stargazers.add(urljoin(BASE, a["href"]))
+
+        # Find the 'Next' button link to go to the next page of followers
+        nextPage = soup.find("a", string="Next")
+        # If there is a 'Next' link, update the URL to the next page
+        if nextPage:
+            url = urljoin(BASE, nextPage["href"])
+        else:
+            # No more pages, break the loop
+            url = None
+
+    return list(stargazers)
