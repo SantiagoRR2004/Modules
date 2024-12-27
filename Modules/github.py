@@ -396,3 +396,36 @@ def getStargazers(repository: str) -> list:
             url = None
 
     return list(stargazers)
+
+
+def getDependencies(repository: str) -> list:
+    """
+    Get the dependencies of a GitHub repository
+
+    It will return them in the format:
+        - https://github.com/username/repoName
+
+    This code is not working yet. If you use requests
+    it will give you a 403 error. The soulution might
+    be to use Selenium or the API.
+
+    Args:
+        - repository (str): The repository to check.
+
+    Returns:
+        - list: The list of URLs for the dependencies.
+    """
+    repository = getCorrectURL(repository)
+    global NUMBERCALLS
+
+    url = urljoin(f"{repository}/", "network/dependencies")
+
+    dependencies = []
+
+    response = requests.get(url)
+    NUMBERCALLS += 1
+
+    if response.status_code == 200:
+        pass
+
+    return dependencies
