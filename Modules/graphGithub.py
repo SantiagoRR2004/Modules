@@ -313,3 +313,42 @@ def addStargazers(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
             pass
 
     return graph
+
+
+def addDependencies(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+    """
+    Add the dependencies of the repositories to the graph.
+
+    When we have found the dependencies of a repository, we mark it
+    in the attribute "searchData" with the key "githubDependencies"
+
+    Args:
+        - graph (nx.MultiDiGraph): The graph to be modified.
+
+    Returns:
+        nx.MultiDiGraph: The graph with the dependencies.
+    """
+    nodes, attributeList = zip(*graph.nodes(data=True))
+
+    for node, attributes in zip(nodes, attributeList):
+        if "Repository" in attributes["type"] and (
+            not attributes.get("searchData", False)
+            or not attributes["searchData"].get("githubDependencies", False)
+        ):
+            dependencies = github.getDependencies(node)
+
+            for d in dependencies:
+                if d not in graph.nodes():
+                    graph.add_node(d, type=("GitHub", "Repository"), color="blue")
+                graph.add_edge(node, d)
+
+            if attributes.get("searchData", False):
+                graph.nodes[node]["searchData"]["githubDependencies"] = True
+            else:
+                graph.nodes[node]["searchData"] = {"githubDependencies": True}
+
+        else:
+            # We have already added the dependencies or it was a user
+            pass
+
+    return graph
