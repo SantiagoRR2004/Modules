@@ -116,10 +116,10 @@ def getName(username: str) -> str:
     """
     Get the name that a Steam user
     has set in their profile.
-    
+
     Args:
         - username (str): The username to check.
-        
+
     Returns:
         - str: The name of the user.
     """
