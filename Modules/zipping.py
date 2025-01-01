@@ -2,17 +2,20 @@ import zipfile
 import os
 from Modules import FileHandling
 
+
 def zipDir(path):
-    zf = zipfile.ZipFile(path+".zip", "w")
+    zf = zipfile.ZipFile(path + ".zip", "w")
     for dirname, subdirs, files in os.walk(path):
-        directory = os.path.relpath(path,dirname)        
+        directory = os.path.relpath(path, dirname)
         for filename in files:
-            zf.write(os.path.join(dirname, filename),os.path.join(directory, filename))
+            zf.write(os.path.join(dirname, filename), os.path.join(directory, filename))
     zf.close()
 
+
 def decompressZip(folder):
-    with zipfile.ZipFile(folder+".zip","r") as zipFile:
+    with zipfile.ZipFile(folder + ".zip", "r") as zipFile:
         zipFile.extractall(folder)
+
 
 def zipAndDelete(folder):
     zipDir(folder)

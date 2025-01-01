@@ -4,6 +4,7 @@ import subprocess
 import shutil
 import json
 
+
 def calculatePercentage(strings):
     counts = {}  # Dictionary to store string counts
 
@@ -23,13 +24,23 @@ def calculatePercentage(strings):
         if value > 1:
             percentage = (value / total_strings) * 100
             percentages[key] = percentage
-    percentages = {k: v for k, v in sorted(percentages.items(), key=lambda item: (-item[1], item[0]))}
+    percentages = {
+        k: v
+        for k, v in sorted(percentages.items(), key=lambda item: (-item[1], item[0]))
+    }
 
     return percentages
 
+
 def runTerminal(command):
     try:
-        completed_process = subprocess.run(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        completed_process = subprocess.run(
+            command,
+            shell=True,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         if completed_process.returncode == 0:
             print("Command executed successfully!")
             print("Output:")
@@ -41,15 +52,17 @@ def runTerminal(command):
     except Exception as e:
         print("An error occurred:", e)
 
-def copySongs(folder,outputFolder,randomizedList,widthNumber):
-    for number,song in enumerate(randomizedList):
-        newSong = "{:0>{}} ".format(number+1, widthNumber) + song
+
+def copySongs(folder, outputFolder, randomizedList, widthNumber):
+    for number, song in enumerate(randomizedList):
+        newSong = "{:0>{}} ".format(number + 1, widthNumber) + song
         print(newSong)
-        origin = os.path.join(folder,song)
-        destination = os.path.join(outputFolder,newSong)
+        origin = os.path.join(folder, song)
+        destination = os.path.join(outputFolder, newSong)
         shutil.copy(origin, destination)
 
-def saveList(list1,outputFile):
+
+def saveList(list1, outputFile):
     list0 = list1.copy()
     with open(outputFile, "r") as file:
         oldList = file.readlines()
@@ -62,17 +75,16 @@ def saveList(list1,outputFile):
             file.write(song + "\n")
 
 
-def getSongs(folder,songNames):
-    mp3List = FileHandling.findPatternFolder(folder,".mp3$")
+def getSongs(folder, songNames):
+    mp3List = FileHandling.findPatternFolder(folder, ".mp3$")
 
-    saveList(mp3List,songNames)
+    saveList(mp3List, songNames)
 
     percentageResults = calculatePercentage(mp3List)
     with open("Music/mp3Percents.json", "w") as jsonFile:
         json.dump(percentageResults, jsonFile)
 
-
-    with open("Music/notExercise.txt", 'r') as file:
+    with open("Music/notExercise.txt", "r") as file:
         elements = file.read().splitlines()
 
     # We eliminate all the songs in notExercise
@@ -80,34 +92,44 @@ def getSongs(folder,songNames):
 
     return mp3List
 
-def confirmImports(modules:dict)->None:
+
+def confirmImports(modules: dict) -> None:
     """
     This function will check if the modules are installed;
     if they are not it will try to install them.
 
     Might need to change this if pip stops working.
     Added --break-system-packages for newer ubuntu versions.
-    
+
     Args:
         modules (dict): A dictionary with the module name in python as
         the key and the module name from pip as the value.
-    
+
     Returns:
         None
     """
     import importlib.util
+
     for pythonName, module in modules.items():
         if not importlib.util.find_spec(pythonName):
             # Should try to use runTerminal
             import subprocess
+
             try:
-                process = subprocess.run(f"pip install {module}", shell=True, text=True, capture_output=True)
+                process = subprocess.run(
+                    f"pip install {module}", shell=True, text=True, capture_output=True
+                )
                 if process.returncode != 0:
                     raise Exception(process.stderr)
                 else:
                     print(process.stdout)
             except Exception as e:
-                process = subprocess.run(f"pip install {module} --break-system-packages", shell=True, text=True, capture_output=True)
+                process = subprocess.run(
+                    f"pip install {module} --break-system-packages",
+                    shell=True,
+                    text=True,
+                    capture_output=True,
+                )
                 if process.returncode != 0:
                     raise Exception(process.stderr)
                 else:
