@@ -6,11 +6,22 @@ import datetime
 import os
 
 
-def send_notification(subject:str, body:str, receivers:list = None, carbonCopy:list = None, hiddenCarbonCopy:list = None):
+def send_notification(
+    subject: str,
+    body: str,
+    receivers: list = None,
+    carbonCopy: list = None,
+    hiddenCarbonCopy: list = None,
+):
     msg = email.message.EmailMessage()
     msg.set_content(body)
     msg["Subject"] = subject
-    data = FileHandling.openJson(os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "Password.json"))
+    data = FileHandling.openJson(
+        os.path.join(
+            os.path.dirname((os.path.dirname(os.path.abspath(__file__)))),
+            "Password.json",
+        )
+    )
 
     if receivers:
         msg["To"] = ", ".join(receivers)
@@ -23,13 +34,13 @@ def send_notification(subject:str, body:str, receivers:list = None, carbonCopy:l
         msg["BCC"] = ", ".join(hiddenCarbonCopy)
     else:
         msg["BCC"] = data["reciever"]
-        
-    if not(receivers or carbonCopy or hiddenCarbonCopy):
+
+    if not (receivers or carbonCopy or hiddenCarbonCopy):
         msg["To"] = data["reciever"]
 
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
-    
+
     username = data["username"]
     msg["From"] = username
     password = data["password"]
@@ -46,10 +57,16 @@ def sendMail(smtpServer, smtpPort, username, password, message):
         server.send_message(message)
         print("Mail sent")
 
+
 def notCheckIfAlready(message):
 
     # Set your email and password
-    data = FileHandling.openJson(os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "Password.json"))
+    data = FileHandling.openJson(
+        os.path.join(
+            os.path.dirname((os.path.dirname(os.path.abspath(__file__)))),
+            "Password.json",
+        )
+    )
     email_address = data["username"]
     password = data["password"]
 
@@ -64,7 +81,9 @@ def notCheckIfAlready(message):
         currentDate = datetime.date.today()
 
         # Search for all emails sent today
-        status, messages = mail.search(None, f'SINCE "{currentDate.strftime("%d-%b-%Y")}"')
+        status, messages = mail.search(
+            None, f'SINCE "{currentDate.strftime("%d-%b-%Y")}"'
+        )
 
         message_ids = messages[0].split()
 
@@ -82,17 +101,18 @@ def notCheckIfAlready(message):
 
             to_ = decodePartMessage(msg, "To")
 
-            if subject == message["Subject"] and to_== message["To"]:
+            if subject == message["Subject"] and to_ == message["To"]:
                 return False
 
         return True
 
+
 def decodePartMessage(message, part):
     parts = email.header.decode_header(message.get(part))
-    decodedMessage = ''
+    decodedMessage = ""
     for part, encoding in parts:
         if isinstance(part, bytes):
-            decodedMessage += part.decode(encoding or 'utf-8')
+            decodedMessage += part.decode(encoding or "utf-8")
         else:
             decodedMessage += part
     return decodedMessage

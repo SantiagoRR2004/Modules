@@ -21,7 +21,6 @@ def downloaAudioMP3(video_url, output_path=".", filename=None):
         # Get the highest resolution audio stream
         audio_stream = yt.streams.filter(only_audio=True).first()
 
-
         if filename == None:
             filename = yt.title
 
@@ -32,7 +31,7 @@ def downloaAudioMP3(video_url, output_path=".", filename=None):
 
         elif ending != ".mp3":
             filename += ".mp3"
-            
+
         # Download the audio stream
         audio_stream.download(output_path, filename=filename)
 

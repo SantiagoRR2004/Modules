@@ -1,11 +1,13 @@
 from datetime import datetime, date, timedelta
 
+
 def is_month(string):
     try:
         datetime.strptime(string, "%B")
         return True
     except ValueError:
         return False
+
 
 def find_next_month(current_month):
     # Parsing the input month string to a datetime object
@@ -19,6 +21,7 @@ def find_next_month(current_month):
 
     return next_month
 
+
 def find_last_month(current_month):
     # Parsing the input month string to a datetime object
     current_date = datetime.strptime(current_month, "%B")
@@ -31,15 +34,17 @@ def find_last_month(current_month):
 
     return last_month
 
+
 def eliminateSufixes(dates):
-    for sufix in ["st","nd","th","rd"]:
+    for sufix in ["st", "nd", "th", "rd"]:
         for date in range(len(dates)):
             dateParts = dates[date].split()
             for unit in range(len(dateParts)):
                 if dateParts[unit][0].isdigit():
-                    dateParts[unit] = dateParts[unit].replace(sufix,"")
+                    dateParts[unit] = dateParts[unit].replace(sufix, "")
             dates[date] = " ".join(dateParts)
     return dates
+
 
 def parseDate(date):
     date = date.split(" ")
@@ -56,7 +61,8 @@ def parseDate(date):
             toret["year"] = int(i)
     return toret
 
-def filldates(start,end):
+
+def filldates(start, end):
 
     if "day" not in start and "day" not in end:
         print("Problem; no days")
@@ -72,13 +78,11 @@ def filldates(start,end):
             else:
                 start["month"] = find_last_month(end["month"])
 
-
         elif "month" not in end:
             if end["day"] >= start["day"]:
                 end["month"] = start["month"]
             else:
                 end["month"] = find_next_month(start["month"])
-
 
     if "year" not in start or "year" not in end:
         monthStart = datetime.strptime(start["month"], "%B").month
@@ -94,15 +98,16 @@ def filldates(start,end):
             if monthEnd >= monthStart:
                 start["year"] = end["year"]
             else:
-                start["year"] = end["year"]-1
+                start["year"] = end["year"] - 1
 
         elif "year" not in end:
             if monthEnd >= monthStart:
                 end["year"] = start["year"]
             else:
-                end["year"] = start["year"]+1
+                end["year"] = start["year"] + 1
 
-    return start,end
+    return start, end
+
 
 def formattingDates(release_dates):
     formattedDates = []
@@ -121,16 +126,20 @@ def formattingDates(release_dates):
             start = parseDate(start)
             end = parseDate(end)
 
-            start,end = filldates(start,end)
+            start, end = filldates(start, end)
 
-            formattedStart = "{month} {day} {year}".format(year=start["year"], month=start["month"], day=start["day"])
+            formattedStart = "{month} {day} {year}".format(
+                year=start["year"], month=start["month"], day=start["day"]
+            )
             formattedStart = datetime.strptime(formattedStart, "%B %d %Y")
             formattedStart = formattedStart.strftime("%Y-%m-%d")
 
-            formattedEnd = "{month} {day} {year}".format(year=end["year"], month=end["month"], day=end["day"])
+            formattedEnd = "{month} {day} {year}".format(
+                year=end["year"], month=end["month"], day=end["day"]
+            )
             formattedEnd = datetime.strptime(formattedEnd, "%B %d %Y")
             formattedEnd = formattedEnd.strftime("%Y-%m-%d")
 
-        formattedDates.append({"start":formattedStart,"end":formattedEnd})
+        formattedDates.append({"start": formattedStart, "end": formattedEnd})
 
     return formattedDates
