@@ -22,21 +22,23 @@ def downloadImage(url, dest_file):
     if not os.path.isfile(dest_file):
         response = requests.get(url)
         if response.status_code == 200:
-            with open(dest_file, 'wb') as f:
+            with open(dest_file, "wb") as f:
                 f.write(response.content)
         time.sleep(random.uniform(0.1, 1))
 
+
 def mangasee123UrlsXML(web):
     r = requests.get(web)
-    page = BeautifulSoup(r.content, 'xml')
-    urls = [item.find('link').text for item in page.find_all('item')]
+    page = BeautifulSoup(r.content, "xml")
+    urls = [item.find("link").text for item in page.find_all("item")]
     return urls[::-1]
+
 
 def configureChrome() -> webdriver.Chrome:
     """
     Configures a Chrome WebDriver instance
     and tries to say it is not automated
-    
+
     Returns:
         webdriver.Chrome: A WebDriver instance
     """
@@ -44,17 +46,23 @@ def configureChrome() -> webdriver.Chrome:
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    chrome_options.add_experimental_option('useAutomationExtension', False)
-    chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+    chrome_options.add_experimental_option("useAutomationExtension", False)
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     # userDataDir = os.path.join(os.path.expanduser("~"), ".config", "google-chrome", "Default")
     # chrome_options.add_argument(f"user-data-dir={userDataDir}")
     service = Service(ChromeDriverManager().install())
     return webdriver.Chrome(options=chrome_options, service=service)
 
-def clickButton(driver,name):
-    wait = WebDriverWait(driver, 10)  # Wait up to 10 seconds for the button to be clickable
-    button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., '"+name+"')]")))
+
+def clickButton(driver, name):
+    wait = WebDriverWait(
+        driver, 10
+    )  # Wait up to 10 seconds for the button to be clickable
+    button = wait.until(
+        EC.element_to_be_clickable((By.XPATH, "//button[contains(., '" + name + "')]"))
+    )
     button.click()
+
 
 def findPNGs(driver):
     script = """
@@ -74,8 +82,8 @@ return images;
 
     # Loop through each image element and extract the source URL if it's a PNG image
     for img_element in image_elements:
-        src = img_element.get_attribute('src')
-        if src and src.lower().endswith('.png'):
+        src = img_element.get_attribute("src")
+        if src and src.lower().endswith(".png"):
             png_image_urls.append(src)
 
     remove = ["https://bidgear.com/images/close-icon.png"]
@@ -83,11 +91,14 @@ return images;
 
     return sorted(list(set(png_image_urls)))
 
-def mangasee123Downloader(manga,chapter,maxDownload,callerDirectory,skip=[],missing=[]):
+
+def mangasee123Downloader(
+    manga, chapter, maxDownload, callerDirectory, skip=[], missing=[]
+):
     mangaSpaces = manga.replace(" ", "")
     mangaHyphens = manga.replace(" ", "-")
 
-    infofile = os.path.join(callerDirectory,"Manga.json")
+    infofile = os.path.join(callerDirectory, "Manga.json")
     mangaData = FileHandling.openJson(infofile)
 
     if mangaData.get(mangaSpaces):
@@ -96,8 +107,8 @@ def mangasee123Downloader(manga,chapter,maxDownload,callerDirectory,skip=[],miss
         if mangaData.get(mangaHyphens).get("missing"):
             missing = mangaData[mangaHyphens]["missing"]
 
-    web = "https://mangasee123.com/rss/"+mangaHyphens+".xml"
-    folder = os.path.join(callerDirectory,"."+mangaSpaces+"JPG")
+    web = "https://mangasee123.com/rss/" + mangaHyphens + ".xml"
+    folder = os.path.join(callerDirectory, "." + mangaSpaces + "JPG")
     urls = mangasee123UrlsXML(web)
 
     for x in skip:
@@ -105,7 +116,7 @@ def mangasee123Downloader(manga,chapter,maxDownload,callerDirectory,skip=[],miss
             urls.remove(x)
 
     for x in missing:
-        urls.insert(x-1,"missing")
+        urls.insert(x - 1, "missing")
 
     if len(urls) < maxDownload:
         print("There aren't that many chapters")
@@ -126,21 +137,23 @@ def mangasee123Downloader(manga,chapter,maxDownload,callerDirectory,skip=[],miss
     FileHandling.ensureExistance(folder)
     driver = configureChrome()
 
-    while chapter <= maxDownload:        
+    while chapter <= maxDownload:
         if chapter in missing:
             pass
 
         else:
-            driver.get(urls[chapter-1])
-            clickButton(driver,"Long Strip")
+            driver.get(urls[chapter - 1])
+            clickButton(driver, "Long Strip")
 
             png_image_urls = findPNGs(driver)
 
             for i in range(len(png_image_urls)):
-                name = str(chapter) + "{:0>{}}".format(i, 3) + ".jpg" # Try to change it to png
-                downloadImage(png_image_urls[i], os.path.join(folder,name))
+                name = (
+                    str(chapter) + "{:0>{}}".format(i, 3) + ".jpg"
+                )  # Try to change it to png
+                downloadImage(png_image_urls[i], os.path.join(folder, name))
 
-        print("Se ha descargado el capítulo "+str(chapter))
+        print("Se ha descargado el capítulo " + str(chapter))
         chapter += 1
         time.sleep(random.uniform(1, 10))
 
@@ -153,7 +166,7 @@ def getCookies() -> list:
     """
     Returns a list with the cookies from the Chrome browser.
 
-    It returns a list of dictionaries. Each dictionary 
+    It returns a list of dictionaries. Each dictionary
     contains the columns of the cookies table as keys
     and the values of the columns as values.
     """
@@ -251,4 +264,3 @@ def decryptCookies(cookies: list) -> list:
             decryptedCookies.append(cookie)
 
     return decryptedCookies
-
