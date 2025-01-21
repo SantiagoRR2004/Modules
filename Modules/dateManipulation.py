@@ -1,4 +1,6 @@
 from datetime import datetime, date, timedelta
+import calendar
+import difflib
 
 
 def is_month(string):
@@ -7,6 +9,28 @@ def is_month(string):
         return True
     except ValueError:
         return False
+
+
+def closest_month(word: str) -> str:
+    """
+    Finds the closest month to a misspelled month name
+
+    Args:
+        - word (str): The misspelled month name
+
+    Returns:
+        - str: The closest month name or
+            the original word if no match found
+    """
+    # List of valid months
+    months = list(calendar.month_name)[1:]
+    # Find the closest match to the misspelled word
+    match = difflib.get_close_matches(
+        word, months, n=1, cutoff=0.6
+    )  # 60% similarity threshold
+    return (
+        match[0] if match else word
+    )  # Return the closest match or the original word if no match found
 
 
 def find_next_month(current_month):
@@ -54,8 +78,8 @@ def parseDate(date):
         if i.isnumeric() and int(i) <= 31:
             toret["day"] = int(i)
 
-        elif is_month(i):
-            toret["month"] = i
+        elif is_month(i) or closest_month(i) in list(calendar.month_name)[1:]:
+            toret["month"] = closest_month(i)
 
         elif i.isnumeric() and int(i) >= 2021:
             toret["year"] = int(i)
