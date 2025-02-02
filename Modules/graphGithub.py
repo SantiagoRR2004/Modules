@@ -1,5 +1,12 @@
-import networkx as nx
+from Modules import Utils
 from Modules import github
+
+
+Utils.confirmImports({"networkx": "networkx", "tqdm": "tqdm"})
+
+
+import networkx as nx
+import tqdm
 
 
 def addRepositories(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
@@ -22,7 +29,9 @@ def addRepositories(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     nodes, attributeList = zip(*graph.nodes(data=True))
 
-    for node, attributes in zip(nodes, attributeList):
+    for node, attributes in tqdm.tqdm(
+        zip(nodes, attributeList), total=len(nodes), desc="Adding owned repositories"
+    ):
         if "User" in attributes["type"]:
             if not attributes.get("searchData", False) or not attributes[
                 "searchData"
@@ -72,7 +81,9 @@ def addContributors(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     nodes, attributeList = zip(*graph.nodes(data=True))
 
-    for node, attributes in zip(nodes, attributeList):
+    for node, attributes in tqdm.tqdm(
+        zip(nodes, attributeList), total=len(nodes), desc="Adding contributors"
+    ):
         if "Repository" in attributes["type"]:
             if not attributes.get("searchData", False) or not attributes[
                 "searchData"
@@ -114,7 +125,10 @@ def addParentsToRepository(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     nodes, attributeList = zip(*graph.nodes(data=True))
 
-    for node, attributes in zip(nodes, attributeList):
+    for node, attributes in tqdm.tqdm(
+        zip(nodes, attributeList), total=len(nodes), desc="Adding repositories' parents"
+    ):
+
         tempNode, tempAttributes = node, attributes
         continueFlag = True
 
@@ -166,7 +180,9 @@ def addUserConnections(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     nodes, attributeList = zip(*graph.nodes(data=True))
 
-    for node, attributes in zip(nodes, attributeList):
+    for node, attributes in tqdm.tqdm(
+        zip(nodes, attributeList), total=len(nodes), desc="Adding following and followers"
+    ):
         if "User" in attributes["type"]:
             if not attributes.get("searchData", False) or not attributes[
                 "searchData"
@@ -214,7 +230,9 @@ def addStarredRepositories(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     nodes, attributeList = zip(*graph.nodes(data=True))
 
-    for node, attributes in zip(nodes, attributeList):
+    for node, attributes in tqdm.tqdm(
+        zip(nodes, attributeList), total=len(nodes), desc="Adding starred repositories"
+    ):
         if "User" in attributes["type"]:
             if not attributes.get("searchData", False) or not attributes[
                 "searchData"
@@ -253,7 +271,9 @@ def addOwners(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     nodes, attributeList = zip(*graph.nodes(data=True))
 
-    for node, attributes in zip(nodes, attributeList):
+    for node, attributes in tqdm.tqdm(
+        zip(nodes, attributeList), total=len(nodes), desc="Adding repository owner"
+    ):
         if "Repository" in attributes["type"] and (
             not attributes.get("searchData", False)
             or not attributes["searchData"].get("githubOwner", False)
@@ -291,7 +311,9 @@ def addStargazers(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     nodes, attributeList = zip(*graph.nodes(data=True))
 
-    for node, attributes in zip(nodes, attributeList):
+    for node, attributes in tqdm.tqdm(
+        zip(nodes, attributeList), total=len(nodes), desc="Adding stargazers"
+    ):
         if "Repository" in attributes["type"] and (
             not attributes.get("searchData", False)
             or not attributes["searchData"].get("githubStargazers", False)
@@ -330,7 +352,9 @@ def addDependencies(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     nodes, attributeList = zip(*graph.nodes(data=True))
 
-    for node, attributes in zip(nodes, attributeList):
+    for node, attributes in tqdm.tqdm(
+        zip(nodes, attributeList), total=len(nodes), desc="Adding repositories' dependencies"
+    ):
         if "Repository" in attributes["type"] and (
             not attributes.get("searchData", False)
             or not attributes["searchData"].get("githubDependencies", False)
