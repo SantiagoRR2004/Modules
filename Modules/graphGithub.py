@@ -181,7 +181,9 @@ def addUserConnections(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     nodes, attributeList = zip(*graph.nodes(data=True))
 
     for node, attributes in tqdm.tqdm(
-        zip(nodes, attributeList), total=len(nodes), desc="Adding following and followers"
+        zip(nodes, attributeList),
+        total=len(nodes),
+        desc="Adding following and followers",
     ):
         if "User" in attributes["type"]:
             if not attributes.get("searchData", False) or not attributes[
@@ -353,7 +355,9 @@ def addDependencies(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
     nodes, attributeList = zip(*graph.nodes(data=True))
 
     for node, attributes in tqdm.tqdm(
-        zip(nodes, attributeList), total=len(nodes), desc="Adding repositories' dependencies"
+        zip(nodes, attributeList),
+        total=len(nodes),
+        desc="Adding repositories' dependencies",
     ):
         if "Repository" in attributes["type"] and (
             not attributes.get("searchData", False)
