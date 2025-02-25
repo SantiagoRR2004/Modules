@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+from typing import Tuple
 
 BASE = "https://github.com"
 COLOR = "#852fa4"
@@ -238,9 +239,10 @@ def getRealUrlFromAPI(url: str) -> str:
     return response.json()["html_url"]
 
 
-def getRepositoryParent(url: str) -> str:
+def getRepositoryParent(url: str) -> Tuple[str, str]:
     """
     Get the parent repository of a forked repository
+    or the template if it was created from one.
 
     It will return the parent repository URL or None
     if the repository is not a fork.
@@ -261,6 +263,7 @@ def getRepositoryParent(url: str) -> str:
     soup = BeautifulSoup(response.text, "html.parser")
 
     parent = None
+    typeOfParent = None
 
     parentLinkMeta = soup.find(
         "meta", {"name": "octolytics-dimension-repository_parent_nwo"}
@@ -269,8 +272,23 @@ def getRepositoryParent(url: str) -> str:
     if parentLinkMeta:
         parentRepository = parentLinkMeta["content"]
         parent = urljoin(BASE, parentRepository)
+        typeOfParent = "fork"
 
-    return parent
+    else:
+
+        # Check if the repository was created from a template
+
+        # Check both possible div structures
+        for div in soup.find_all("div", class_=["d-none", "d-md-block", "mb-2", "d-flex", "color-fg-muted"]):
+            if "generated from" in div.text.lower():
+                a_tag = div.find("a", class_="Link--inTextBlock")
+
+                if a_tag and "href" in a_tag.attrs:
+                    parent = urljoin(BASE, a_tag["href"])
+                    typeOfParent = "template"
+                    break  # Stop once found
+
+    return parent, typeOfParent
 
 
 def getStarredRepositories(username: str) -> list:
@@ -429,3 +447,4 @@ def getDependencies(repository: str) -> list:
         pass
 
     return dependencies
+

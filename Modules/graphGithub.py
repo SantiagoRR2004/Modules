@@ -138,7 +138,7 @@ def addParentsToRepository(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
                 not tempAttributes.get("searchData", False)
                 or not tempAttributes["searchData"].get("githubParent", False)
             ):
-                parent = github.getRepositoryParent(tempNode)
+                parent, type = github.getRepositoryParent(tempNode)
 
                 if parent:
                     if parent not in graph.nodes():
