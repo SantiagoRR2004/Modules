@@ -104,6 +104,10 @@ def urlWithNames(pathToCsv: str, websiteLabel: str) -> dict:
             if part
         )
 
+        # If the name is empty, it probably is a company
+        if not name:
+            name = [data["Organization Name"][i] if data.get("Organization Name") else ""][0]
+
         found = False
         j = 1
         while not found:
