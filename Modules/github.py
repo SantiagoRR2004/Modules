@@ -279,7 +279,9 @@ def getRepositoryParent(url: str) -> Tuple[str, str]:
         # Check if the repository was created from a template
 
         # Check both possible div structures
-        for div in soup.find_all("div", class_=["d-none", "d-md-block", "mb-2", "d-flex", "color-fg-muted"]):
+        for div in soup.find_all(
+            "div", class_=["d-none", "d-md-block", "mb-2", "d-flex", "color-fg-muted"]
+        ):
             if "generated from" in div.text.lower():
                 a_tag = div.find("a", class_="Link--inTextBlock")
 
@@ -447,4 +449,3 @@ def getDependencies(repository: str) -> list:
         pass
 
     return dependencies
-
