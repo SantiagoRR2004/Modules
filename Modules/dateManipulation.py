@@ -74,10 +74,10 @@ def eliminateSufixes(dates):
 def cleanNumber(number: str) -> str:
     """
     Removes all non-digit characters from a string
-    
+
     Args:
         - number (str): The string to clean
-        
+
     Returns:
         - str: The cleaned string
     """
@@ -164,7 +164,9 @@ def filldates(start, end):
     return start, end
 
 
-def formattingDates(release_dates: List[str]) -> List[Dict["start": datetime, "end": datetime]]:
+def formattingDates(
+    release_dates: List[str],
+) -> List[Dict["start":datetime, "end":datetime]]:
     """
     Formats a list of date ranges in string format
     to a list of dictionaries with the start and end dates
@@ -175,10 +177,10 @@ def formattingDates(release_dates: List[str]) -> List[Dict["start": datetime, "e
     - Output: [{"start": datetime(2022, 1, 1), "end": datetime(2022, 1, 3)},
                {"start": datetime(2023, 1, 5), "end": datetime
                (2023, 1, 5)}]
-    
+
     Args:
         - release_dates (str): The list of date ranges to format
-        
+
     Returns:
         - List[dict]: A list of dictionaries with the start and end dates
     """
