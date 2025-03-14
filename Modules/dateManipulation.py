@@ -1,4 +1,5 @@
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
+from typing import List, Dict
 import calendar
 import difflib
 
@@ -70,9 +71,39 @@ def eliminateSufixes(dates):
     return dates
 
 
-def parseDate(date):
+def cleanNumber(number: str) -> str:
+    """
+    Removes all non-digit characters from a string
+    
+    Args:
+        - number (str): The string to clean
+        
+    Returns:
+        - str: The cleaned string
+    """
+    # Remove all non digits
+    toret = "".join([x for x in number if x.isdigit()])
+    return toret
+
+
+def parseDate(date: str) -> dict:
+    """
+    Parses a date string and returns a dictionary with the date parts
+
+    Args:
+        - date (str): The date string to parse
+
+    Returns:
+        - dict: A dictionary with the date parts
+    """
     date = date.split(" ")
     toret = {}
+
+    # We add the versions with only numbers
+    date.extend([cleanNumber(x) for x in date])
+
+    # We remove all the empty strings
+    date = [x for x in date if x]
 
     for i in date:
         if i.isnumeric() and int(i) <= 31:
@@ -133,14 +164,41 @@ def filldates(start, end):
     return start, end
 
 
-def formattingDates(release_dates):
+def formattingDates(release_dates: List[str]) -> List[Dict["start": datetime, "end": datetime]]:
+    """
+    Formats a list of date ranges in string format
+    to a list of dictionaries with the start and end dates
+    as datetime objects
+
+    Example:
+    - Input: ["January 1st 2022 - January 3rd 2022", "January 5th 2023"]
+    - Output: [{"start": datetime(2022, 1, 1), "end": datetime(2022, 1, 3)},
+               {"start": datetime(2023, 1, 5), "end": datetime
+               (2023, 1, 5)}]
+    
+    Args:
+        - release_dates (str): The list of date ranges to format
+        
+    Returns:
+        - List[dict]: A list of dictionaries with the start and end dates
+    """
     formattedDates = []
     for date_range in release_dates:
 
         if len(date_range.split(" - ")) == 1:
             start = date_range.split(" - ")[0]
-            formattedStart = datetime.strptime(start, "%B %d %Y")
-            formattedStart = formattedStart.strftime("%Y-%m-%d")
+
+            start = parseDate(start)
+
+            # This might give errors in the future if it is missing a part
+
+            formattedStart = "{month} {day} {year}".format(
+                year=start["year"], month=start["month"], day=start["day"]
+            )
+
+            formattedStart = datetime.strptime(formattedStart, "%B %d %Y")
+
+            # We assume the event is only one day
             formattedEnd = formattedStart
 
         else:
@@ -156,13 +214,11 @@ def formattingDates(release_dates):
                 year=start["year"], month=start["month"], day=start["day"]
             )
             formattedStart = datetime.strptime(formattedStart, "%B %d %Y")
-            formattedStart = formattedStart.strftime("%Y-%m-%d")
 
             formattedEnd = "{month} {day} {year}".format(
                 year=end["year"], month=end["month"], day=end["day"]
             )
             formattedEnd = datetime.strptime(formattedEnd, "%B %d %Y")
-            formattedEnd = formattedEnd.strftime("%Y-%m-%d")
 
         formattedDates.append({"start": formattedStart, "end": formattedEnd})
 
