@@ -16,8 +16,6 @@ def preparationForPDF(
     callerDirectory=os.path.join(os.getcwd(), "Manga"),
     division="",
     minimum="Title",
-    inversion=False,
-    numeration=False,
 ):
     mangaSpaces = manga.replace(" ", "")
     mangaHyphens = manga.replace(" ", "-")
@@ -30,10 +28,6 @@ def preparationForPDF(
 
     if division == "":
         division = minimum
-
-    if mangaData.get("naming").get(division):
-        inversion = mangaData["naming"][division]["inversion"]
-        numeration = mangaData["naming"][division]["numeration"]
 
     image_folder = os.path.join(callerDirectory, "." + mangaSpaces + "JPG")
     enumeration = os.path.join(callerDirectory, mangaSpaces + "Numeration.csv")
@@ -49,14 +43,18 @@ def preparationForPDF(
     namesPdf = []
     [namesPdf.append(x) for x in enumeration[division] if x not in namesPdf]
 
+    in_order = sum(1 for i in range(len(namesPdf) - 1) if namesPdf[i] <= namesPdf[i + 1])
+    total_pairs = len(namesPdf) - 1
+    needNumberFlag = (in_order / total_pairs) < 0.9
+
     for i in divide:
         name = Utils.nameCreator(
             manga,
             division,
             namesPdf[divide.index(i)],
-            inversion,
+            False,
             divide.index(i) + 1,
-            numeration,
+            needNumberFlag,
             ".pdf",
         )
         convertImagesToPDF(image_folder, i[::-1], os.path.join(pdfFolder, name))
@@ -72,7 +70,7 @@ def convertImagesToPDF(image_folder, imageList, output_pdf, temporalFolder=".Tem
 
     if not imageList:
         FileHandling.deleteFolder(temporalFolder)
-        print("Can't create " + output_pdf)
+        # print("Can't create " + output_pdf)
         return False
 
     cover = Image.open(os.path.join(image_folder, imageList[0]))
