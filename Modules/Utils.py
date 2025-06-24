@@ -81,7 +81,7 @@ def preparationForCBZ(manga, minimum, callerDirectory, division):
     names = []
     [names.append(x) for x in enumeration[division] if x not in names]
 
-    in_order = sum(1 for i in range(len(names) - 1) if names[i] <= names[i+1])
+    in_order = sum(1 for i in range(len(names) - 1) if names[i] <= names[i + 1])
     total_pairs = len(names) - 1
     needNumberFlag = (in_order / total_pairs) < 0.9
 
