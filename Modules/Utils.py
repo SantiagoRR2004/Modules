@@ -66,7 +66,7 @@ def nameCreator(
     return manga + " " + middle + format
 
 
-def preparationForCBZ(manga, minimum, callerDirectory, division, naming):
+def preparationForCBZ(manga, minimum, callerDirectory, division):
     image_folder = os.path.join(callerDirectory, "." + manga + "JPG")
     enumeration = os.path.join(callerDirectory, manga + "Numeration.csv")
     pdfFolder = os.path.join(callerDirectory, manga + " CBZ")
@@ -81,14 +81,18 @@ def preparationForCBZ(manga, minimum, callerDirectory, division, naming):
     names = []
     [names.append(x) for x in enumeration[division] if x not in names]
 
+    in_order = sum(1 for i in range(len(names) - 1) if names[i] <= names[i+1])
+    total_pairs = len(names) - 1
+    needNumberFlag = (in_order / total_pairs) < 0.9
+
     for i in divide:
         name = nameCreator(
             manga,
             division,
             names[divide.index(i)],
-            naming[division]["inversion"],
+            False,
             divide.index(i) + 1,
-            naming[division]["numeration"],
+            needNumberFlag,
             ".cbz",
         )
         create_cbz(image_folder, i[::-1], os.path.join(pdfFolder, name))
