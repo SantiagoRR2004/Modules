@@ -131,9 +131,15 @@ class MangaCreator:
         uniqueList = []
 
         # This is like a set, but it keeps the order
-        [uniqueList.append(x) for x in self.enumeration[division] if x not in uniqueList]
+        [
+            uniqueList.append(x)
+            for x in self.enumeration[division]
+            if x not in uniqueList
+        ]
 
-        in_order = sum(1 for i in range(len(uniqueList) - 1) if uniqueList[i] <= uniqueList[i + 1])
+        in_order = sum(
+            1 for i in range(len(uniqueList) - 1) if uniqueList[i] <= uniqueList[i + 1]
+        )
         total_pairs = len(uniqueList) - 1
         needNumberFlag = (in_order / total_pairs) < 0.9
 
@@ -152,6 +158,7 @@ class MangaCreator:
             names.append(name)
 
         return names
+
 
 def preparationForPDF(
     manga,
