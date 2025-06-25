@@ -184,7 +184,6 @@ class MangaCreator:
         return names
 
 
-
 def convertImagesToPDF(image_folder, imageList, output_pdf, temporalFolder=".Temporal"):
     # https://stackoverflow.com/questions/44375872/pypdf2-returning-blank-pdf-after-copy
 
