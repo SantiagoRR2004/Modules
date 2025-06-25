@@ -5,7 +5,6 @@ import json
 from Modules import FileHandling
 
 
-
 def calculatePercentage(strings):
     counts = {}  # Dictionary to store string counts
 

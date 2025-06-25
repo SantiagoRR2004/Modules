@@ -10,8 +10,6 @@ from collections import Counter
 import zipfile
 
 
-
-
 def preparationForPDF(
     manga,
     callerDirectory=os.path.join(os.getcwd(), "Manga"),
