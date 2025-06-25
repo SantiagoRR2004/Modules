@@ -118,6 +118,40 @@ class MangaCreator:
 
         return toret
 
+    def getNames(self, division: str) -> List[str]:
+        """
+        Returns the names of the manga based on the specified division.
+
+        Args:
+            - division (str): The key in the enumeration dictionary to get names from.
+
+        Returns:
+            - List[str]: A list of names corresponding to the unique values in the division.
+        """
+        uniqueList = []
+
+        # This is like a set, but it keeps the order
+        [uniqueList.append(x) for x in self.enumeration[division] if x not in uniqueList]
+
+        in_order = sum(1 for i in range(len(uniqueList) - 1) if uniqueList[i] <= uniqueList[i + 1])
+        total_pairs = len(uniqueList) - 1
+        needNumberFlag = (in_order / total_pairs) < 0.9
+
+        names = []
+
+        for i in range(len(uniqueList)):
+            if needNumberFlag:
+                middle = division + " " + str(i + 1)
+            else:
+                middle = division
+
+            middle = middle + " " + uniqueList[i]
+
+            name = self.manga + " " + middle
+
+            names.append(name)
+
+        return names
 
 def preparationForPDF(
     manga,
@@ -149,26 +183,15 @@ def preparationForPDF(
     enumeration = CsvHandling.openCsv(enumeration)
     divide = mangaObject.divider(division)
 
-    namesPdf = []
-    [namesPdf.append(x) for x in enumeration[division] if x not in namesPdf]
+    namesPdf = mangaObject.getNames(division)
+    namesPdf = [x + ".pdf" for x in namesPdf]
 
-    in_order = sum(
-        1 for i in range(len(namesPdf) - 1) if namesPdf[i] <= namesPdf[i + 1]
-    )
-    total_pairs = len(namesPdf) - 1
-    needNumberFlag = (in_order / total_pairs) < 0.9
-
-    for i in divide:
-        name = mangaUtils.nameCreator(
-            manga,
-            division,
-            namesPdf[divide.index(i)],
-            False,
-            divide.index(i) + 1,
-            needNumberFlag,
-            ".pdf",
+    for i, name in enumerate(namesPdf):
+        convertImagesToPDF(
+            image_folder,
+            divide[i][::-1],
+            os.path.join(pdfFolder, name),
         )
-        convertImagesToPDF(image_folder, i[::-1], os.path.join(pdfFolder, name))
 
     zipping.zipAndDelete(image_folder)
 
@@ -252,22 +275,6 @@ def create_cbz(images_folder, imagesList, output_cbz, temporalFolder=".Temporal"
     print(output_cbz + " created successfully!")
 
 
-def nameCreator(
-    manga, division, name, inversion: bool, number, numeration: bool, format
-):
-    if numeration:
-        middle = division + " " + str(number)
-    else:
-        middle = division
-
-    if inversion:
-        middle = name + " " + middle
-    else:
-        middle = middle + " " + name
-
-    return manga + " " + middle + format
-
-
 def preparationForCBZ(manga, minimum, callerDirectory, division):
     mangaObject = MangaCreator(manga, callerDirectory)
 
@@ -281,23 +288,14 @@ def preparationForCBZ(manga, minimum, callerDirectory, division):
     enumeration = CsvHandling.openCsv(enumeration)
     divide = mangaObject.divider(division)
 
-    names = []
-    [names.append(x) for x in enumeration[division] if x not in names]
+    names = mangaObject.getNames(division)
+    names = [x + ".cbz" for x in names]
 
-    in_order = sum(1 for i in range(len(names) - 1) if names[i] <= names[i + 1])
-    total_pairs = len(names) - 1
-    needNumberFlag = (in_order / total_pairs) < 0.9
-
-    for i in divide:
-        name = nameCreator(
-            manga,
-            division,
-            names[divide.index(i)],
-            False,
-            divide.index(i) + 1,
-            needNumberFlag,
-            ".cbz",
+    for i, name in enumerate(names):
+        create_cbz(
+            image_folder,
+            divide[i][::-1],
+            os.path.join(pdfFolder, name),
         )
-        create_cbz(image_folder, i[::-1], os.path.join(pdfFolder, name))
 
     zipping.zipAndDelete(image_folder)
