@@ -28,6 +28,12 @@ class MangaCreator:
         self.callerDirectory = callerDirectory
         self.enumeration = self.getEnumeration()
 
+        imageFolder = os.path.join(
+            self.callerDirectory, "." + self.manga.replace(" ", "") + "JPG"
+        )
+        FileHandling.ensureExistance(imageFolder)
+        self.images = FileHandling.findPatternFolder(imageFolder, ".jpg$")
+
     def getEnumeration(self) -> Dict[str, List[str]]:
         """
         Reads the enumeration file for the manga and returns its content as a dictionary.
@@ -69,6 +75,42 @@ class MangaCreator:
             if len(set(enumeration[key])) == len(enumeration[key]):
                 return key
 
+    def createFiles(self, division: str) -> None:
+        pass
+
+    def divider(self, division: str) -> List[List[str]]:
+        """
+        Divides the images based on the unique values in the specified division.
+        
+        Args:
+            - division (str): The key in the enumeration dictionary to divide the images by.
+            
+        Returns:
+            - List[List[str]]: A list of lists, where each inner list contains images
+              corresponding to a unique value in the specified division.
+        """
+        toret = []
+
+        # This is like a set, but it keeps the order
+        uniqueList = [
+            name for i, name in enumerate(self.enumeration[division]) if name not in self.enumeration[division][:i]
+        ]
+
+        # Remove None values if they exist
+        if None in uniqueList:
+            uniqueList.remove(None)
+
+        # Divide the files based on the unique values in the division
+        for i in uniqueList:
+            segment = []
+            for j in range(len(self.enumeration[division])):
+                if self.enumeration[division][j] == i:
+                    segment.extend(
+                        [x for x in self.images if x[:-7] == self.enumeration[self.minimum][j]]
+                    )
+            toret.append(segment)
+
+        return toret
 
 def preparationForPDF(
     manga,
@@ -76,6 +118,8 @@ def preparationForPDF(
     division="",
     minimum="Title",
 ):
+    mangaObject = MangaCreator(manga, callerDirectory)
+
     mangaSpaces = manga.replace(" ", "")
     mangaHyphens = manga.replace(" ", "-")
 
@@ -96,8 +140,7 @@ def preparationForPDF(
     FileHandling.ensureExistance(pdfFolder)
 
     enumeration = CsvHandling.openCsv(enumeration)
-    images = FileHandling.findPatternFolder(image_folder, ".jpg$")
-    divide = mangaUtils.divider(images, enumeration, division, minimum)
+    divide = mangaObject.divider(division)
 
     namesPdf = []
     [namesPdf.append(x) for x in enumeration[division] if x not in namesPdf]
@@ -176,20 +219,6 @@ def convertImagesToPDF(image_folder, imageList, output_pdf, temporalFolder=".Tem
     print(output_pdf + " created successfully!")
 
 
-def divider(images, classifier, key, minimum):
-    toret = []
-    my_list = [x for i, x in enumerate(classifier[key]) if x not in classifier[key][:i]]
-    if None in my_list:
-        my_list.remove(None)
-
-    for i in my_list:
-        segment = []
-        for j in range(len(classifier[key])):
-            if classifier[key][j] == i:
-                segment.extend([x for x in images if x[:-7] == classifier[minimum][j]])
-        toret.append(segment)
-    return toret
-
 
 def create_cbz(images_folder, imagesList, output_cbz, temporalFolder=".Temporal"):
 
@@ -234,6 +263,9 @@ def nameCreator(
 
 
 def preparationForCBZ(manga, minimum, callerDirectory, division):
+    mangaObject = MangaCreator(manga, callerDirectory)
+
+
     image_folder = os.path.join(callerDirectory, "." + manga + "JPG")
     enumeration = os.path.join(callerDirectory, manga + "Numeration.csv")
     pdfFolder = os.path.join(callerDirectory, manga + " CBZ")
@@ -242,8 +274,7 @@ def preparationForCBZ(manga, minimum, callerDirectory, division):
     FileHandling.ensureExistance(pdfFolder)
 
     enumeration = CsvHandling.openCsv(enumeration)
-    images = FileHandling.findPatternFolder(image_folder, ".jpg$")
-    divide = divider(images, enumeration, division, minimum)
+    divide = mangaObject.divider(division)
 
     names = []
     [names.append(x) for x in enumeration[division] if x not in names]
