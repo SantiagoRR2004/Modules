@@ -4,7 +4,6 @@ import subprocess
 import shutil
 import json
 
-
 def calculatePercentage(strings):
     counts = {}  # Dictionary to store string counts
 
