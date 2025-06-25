@@ -1,13 +1,73 @@
-from Modules import Utils
+from Modules import mangaUtils
 from Modules import FileHandling
 from Modules import CsvHandling
 from Modules import zipping
+from typing import List, Dict
 import PyPDF2
 from reportlab.pdfgen import canvas
 from PIL import Image
 import os
 from collections import Counter
 import zipfile
+
+
+class MangaCreator:
+    def __init__(self, mangaName: str, callerDirectory: str) -> None:
+        """
+        Initializes the MangaCreator with the name of the manga and the directory
+        with all the data.
+
+        Args:
+            - mangaName (str): The name of the manga (no problem with spaces).
+            - callerDirectory (str): The directory where the manga data is stored.
+
+        Returns:
+            - None
+        """
+        self.manga = mangaName
+        self.callerDirectory = callerDirectory
+        self.enumeration = self.getEnumeration()
+
+    def getEnumeration(self) -> Dict[str, List[str]]:
+        """
+        Reads the enumeration file for the manga and returns its content as a dictionary.
+        
+        It also saves the minimum key for later use.
+
+        Args:
+            - None
+        
+        Returns:
+            - Dict[str, List[str]]: The enumeration dictionary where keys are categories
+              and values are lists of items in those categories.
+        """
+        enumerationFile = os.path.join(
+            self.callerDirectory, self.manga.replace(" ", "") + "Numeration.csv"
+        )
+        if not os.path.exists(enumerationFile):
+            Warning("Enumeration file not found.")
+            return
+        
+        enumeration = CsvHandling.openCsv(enumerationFile)
+
+        # Store the minimum for later use
+        self.minimum = self.getMinimum(enumeration)
+
+        return enumeration
+
+    def getMinimum(self, enumeration: Dict[str, List[str]]) -> str:
+        """
+        Search for the first unique key in the enumeration dictionary.
+
+        Args:
+            - enumeration (Dict[str, List[str]]): The enumeration dictionary.
+
+        Returns:
+            - str: The first key with unique values in its list.
+        """
+        for key in enumeration:
+            if len(set(enumeration[key])) == len(enumeration[key]):
+                return key
 
 
 def preparationForPDF(
@@ -37,7 +97,7 @@ def preparationForPDF(
 
     enumeration = CsvHandling.openCsv(enumeration)
     images = FileHandling.findPatternFolder(image_folder, ".jpg$")
-    divide = Utils.divider(images, enumeration, division, minimum)
+    divide = mangaUtils.divider(images, enumeration, division, minimum)
 
     namesPdf = []
     [namesPdf.append(x) for x in enumeration[division] if x not in namesPdf]
@@ -49,7 +109,7 @@ def preparationForPDF(
     needNumberFlag = (in_order / total_pairs) < 0.9
 
     for i in divide:
-        name = Utils.nameCreator(
+        name = mangaUtils.nameCreator(
             manga,
             division,
             namesPdf[divide.index(i)],
