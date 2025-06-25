@@ -1,4 +1,3 @@
-from Modules import mangaUtils
 from Modules import FileHandling
 from Modules import CsvHandling
 from Modules import zipping
@@ -31,6 +30,7 @@ class MangaCreator:
         imageFolder = os.path.join(
             self.callerDirectory, "." + self.manga.replace(" ", "") + "JPG"
         )
+        self.imageFolder = imageFolder
         FileHandling.ensureExistance(imageFolder)
         self.images = FileHandling.findPatternFolder(imageFolder, ".jpg$")
 
@@ -75,8 +75,32 @@ class MangaCreator:
             if len(set(enumeration[key])) == len(enumeration[key]):
                 return key
 
-    def createFiles(self, division: str) -> None:
-        pass
+    def createFiles(self, division: str, extension: str) -> None:
+        finalFolder = os.path.join(
+            self.callerDirectory, self.manga.replace(" ", "") + " " + extension.upper()
+        )
+        FileHandling.ensureExistance(finalFolder)
+
+        dividedImages = self.divider(division)
+        names = [n + "." + extension.lower() for n in self.getNames(division)]
+
+        for i, segment in enumerate(dividedImages):
+            if extension.lower() == "pdf":
+                convertImagesToPDF(
+                    self.imageFolder,
+                    segment[::-1],
+                    os.path.join(finalFolder, names[i]),
+                )
+            elif extension.lower() == "cbz":
+                create_cbz(
+                    self.imageFolder,
+                    segment[::-1],
+                    os.path.join(finalFolder, names[i]),
+                )
+            else:
+                raise ValueError("Unsupported extension: " + extension)
+
+        zipping.zipAndDelete(self.imageFolder)
 
     def divider(self, division: str) -> List[List[str]]:
         """
@@ -160,48 +184,6 @@ class MangaCreator:
         return names
 
 
-def preparationForPDF(
-    manga,
-    callerDirectory=os.path.join(os.getcwd(), "Manga"),
-    division="",
-    minimum="Title",
-):
-    mangaObject = MangaCreator(manga, callerDirectory)
-
-    mangaSpaces = manga.replace(" ", "")
-    mangaHyphens = manga.replace(" ", "-")
-
-    infofile = os.path.join(callerDirectory, "Manga.json")
-    mangaData = FileHandling.openJson(infofile)
-
-    if mangaData.get(mangaHyphens) and mangaData.get(mangaHyphens).get("minimum"):
-        minimum = mangaData[mangaHyphens]["minimum"]
-
-    if division == "":
-        division = minimum
-
-    image_folder = os.path.join(callerDirectory, "." + mangaSpaces + "JPG")
-    enumeration = os.path.join(callerDirectory, mangaSpaces + "Numeration.csv")
-    pdfFolder = os.path.join(callerDirectory, mangaSpaces + " PDF")
-
-    FileHandling.ensureExistance(image_folder)
-    FileHandling.ensureExistance(pdfFolder)
-
-    enumeration = CsvHandling.openCsv(enumeration)
-    divide = mangaObject.divider(division)
-
-    namesPdf = mangaObject.getNames(division)
-    namesPdf = [x + ".pdf" for x in namesPdf]
-
-    for i, name in enumerate(namesPdf):
-        convertImagesToPDF(
-            image_folder,
-            divide[i][::-1],
-            os.path.join(pdfFolder, name),
-        )
-
-    zipping.zipAndDelete(image_folder)
-
 
 def convertImagesToPDF(image_folder, imageList, output_pdf, temporalFolder=".Temporal"):
     # https://stackoverflow.com/questions/44375872/pypdf2-returning-blank-pdf-after-copy
@@ -280,29 +262,3 @@ def create_cbz(images_folder, imagesList, output_cbz, temporalFolder=".Temporal"
     FileHandling.deleteFolder(temporalFolder)
 
     print(output_cbz + " created successfully!")
-
-
-def preparationForCBZ(manga, minimum, callerDirectory, division):
-    mangaObject = MangaCreator(manga, callerDirectory)
-
-    image_folder = os.path.join(callerDirectory, "." + manga + "JPG")
-    enumeration = os.path.join(callerDirectory, manga + "Numeration.csv")
-    pdfFolder = os.path.join(callerDirectory, manga + " CBZ")
-
-    FileHandling.ensureExistance(image_folder)
-    FileHandling.ensureExistance(pdfFolder)
-
-    enumeration = CsvHandling.openCsv(enumeration)
-    divide = mangaObject.divider(division)
-
-    names = mangaObject.getNames(division)
-    names = [x + ".cbz" for x in names]
-
-    for i, name in enumerate(names):
-        create_cbz(
-            image_folder,
-            divide[i][::-1],
-            os.path.join(pdfFolder, name),
-        )
-
-    zipping.zipAndDelete(image_folder)
