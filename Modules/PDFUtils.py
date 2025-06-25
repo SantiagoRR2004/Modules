@@ -43,7 +43,9 @@ def preparationForPDF(
     namesPdf = []
     [namesPdf.append(x) for x in enumeration[division] if x not in namesPdf]
 
-    in_order = sum(1 for i in range(len(namesPdf) - 1) if namesPdf[i] <= namesPdf[i + 1])
+    in_order = sum(
+        1 for i in range(len(namesPdf) - 1) if namesPdf[i] <= namesPdf[i + 1]
+    )
     total_pairs = len(namesPdf) - 1
     needNumberFlag = (in_order / total_pairs) < 0.9
 
