@@ -31,12 +31,12 @@ class MangaCreator:
     def getEnumeration(self) -> Dict[str, List[str]]:
         """
         Reads the enumeration file for the manga and returns its content as a dictionary.
-        
+
         It also saves the minimum key for later use.
 
         Args:
             - None
-        
+
         Returns:
             - Dict[str, List[str]]: The enumeration dictionary where keys are categories
               and values are lists of items in those categories.
@@ -47,7 +47,7 @@ class MangaCreator:
         if not os.path.exists(enumerationFile):
             Warning("Enumeration file not found.")
             return
-        
+
         enumeration = CsvHandling.openCsv(enumerationFile)
 
         # Store the minimum for later use
