@@ -81,10 +81,10 @@ class MangaCreator:
     def divider(self, division: str) -> List[List[str]]:
         """
         Divides the images based on the unique values in the specified division.
-        
+
         Args:
             - division (str): The key in the enumeration dictionary to divide the images by.
-            
+
         Returns:
             - List[List[str]]: A list of lists, where each inner list contains images
               corresponding to a unique value in the specified division.
@@ -93,7 +93,9 @@ class MangaCreator:
 
         # This is like a set, but it keeps the order
         uniqueList = [
-            name for i, name in enumerate(self.enumeration[division]) if name not in self.enumeration[division][:i]
+            name
+            for i, name in enumerate(self.enumeration[division])
+            if name not in self.enumeration[division][:i]
         ]
 
         # Remove None values if they exist
@@ -106,11 +108,16 @@ class MangaCreator:
             for j in range(len(self.enumeration[division])):
                 if self.enumeration[division][j] == i:
                     segment.extend(
-                        [x for x in self.images if x[:-7] == self.enumeration[self.minimum][j]]
+                        [
+                            x
+                            for x in self.images
+                            if x[:-7] == self.enumeration[self.minimum][j]
+                        ]
                     )
             toret.append(segment)
 
         return toret
+
 
 def preparationForPDF(
     manga,
@@ -219,7 +226,6 @@ def convertImagesToPDF(image_folder, imageList, output_pdf, temporalFolder=".Tem
     print(output_pdf + " created successfully!")
 
 
-
 def create_cbz(images_folder, imagesList, output_cbz, temporalFolder=".Temporal"):
 
     FileHandling.ensureExistance(temporalFolder)
@@ -264,7 +270,6 @@ def nameCreator(
 
 def preparationForCBZ(manga, minimum, callerDirectory, division):
     mangaObject = MangaCreator(manga, callerDirectory)
-
 
     image_folder = os.path.join(callerDirectory, "." + manga + "JPG")
     enumeration = os.path.join(callerDirectory, manga + "Numeration.csv")
