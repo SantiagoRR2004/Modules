@@ -94,10 +94,21 @@ class MangaCreator:
         dividedImages = self.divider(division)
         names = [n + "." + extension.lower() for n in self.getNames(division)]
 
-        for i, segment in enumerate(dividedImages):
-            method(segment, os.path.join(finalFolder, names[i]))
+        # Create the temporal folder if it doesn't exist
+        FileHandling.ensureExistance(self.temporalFolder)
 
+        for i, segment in enumerate(dividedImages):
+
+            # Check if the segment is empty
+            if not segment:
+                print(f"No images found for '{names[i]}'.")
+            else:
+                method(segment, os.path.join(finalFolder, names[i]))
+
+        # Clean up
         zipping.zipAndDelete(self.imageFolder)
+        FileHandling.deleteFolder(self.temporalFolder)
+
 
     def divider(self, division: str) -> List[List[str]]:
         """
@@ -193,15 +204,8 @@ class MangaCreator:
         """
         # https://stackoverflow.com/questions/44375872/pypdf2-returning-blank-pdf-after-copy
 
-        FileHandling.ensureExistance(self.temporalFolder)
-
         pdf_writer = PyPDF2.PdfWriter()
         smallerPdfs = []
-
-        if not imageList:
-            FileHandling.deleteFolder(self.temporalFolder)
-            # print("Can't create " + output_pdf)
-            return
 
         cover = Image.open(os.path.join(self.imageFolder, imageList[0]))
         width = cover.width
@@ -238,8 +242,6 @@ class MangaCreator:
         with open(outputFile, "wb") as output:
             pdf_writer.write(output)
 
-        FileHandling.deleteFolder(self.temporalFolder)
-
         print(outputFile + " created successfully!")
 
     def createCBZ(self, imagesList: List[str], outputFile: str) -> None:
@@ -253,8 +255,6 @@ class MangaCreator:
         Returns:
             - None
         """
-        FileHandling.ensureExistance(self.temporalFolder)
-
         for image_file in imagesList:
             FileHandling.copyFile(
                 self.imageFolder,
@@ -271,6 +271,5 @@ class MangaCreator:
                     # rgb_image = img.convert("RGB")
                     cbz.write(image_path, arcname=os.path.basename(image_path))
 
-        FileHandling.deleteFolder(self.temporalFolder)
 
         print(outputFile + " created successfully!")
