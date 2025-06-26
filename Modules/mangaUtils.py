@@ -11,6 +11,8 @@ import zipfile
 
 
 class MangaCreator:
+    temporalFolder = ".Temporal"
+
     def __init__(self, mangaName: str, callerDirectory: str) -> None:
         """
         Initializes the MangaCreator with the name of the manga and the directory
@@ -86,14 +88,12 @@ class MangaCreator:
 
         for i, segment in enumerate(dividedImages):
             if extension.lower() == "pdf":
-                convertImagesToPDF(
-                    self.imageFolder,
+                self.createPDF(
                     segment[::-1],
                     os.path.join(finalFolder, names[i]),
                 )
             elif extension.lower() == "cbz":
-                create_cbz(
-                    self.imageFolder,
+                self.createCBZ(
                     segment[::-1],
                     os.path.join(finalFolder, names[i]),
                 )
@@ -183,81 +183,99 @@ class MangaCreator:
 
         return names
 
+    def createPDF(self, imageList: List[str], outputFile: str) -> None:
+        """
+        Creates a PDF file from a list of images.
+        
+        Args:
+            - imageList (List[str]): List of image filenames to include in the PDF.
+            - outputFile (str): The path where the output PDF will be saved.
+            
+        Returns:
+            - None
+        """
+        # https://stackoverflow.com/questions/44375872/pypdf2-returning-blank-pdf-after-copy
 
-def convertImagesToPDF(image_folder, imageList, output_pdf, temporalFolder=".Temporal"):
-    # https://stackoverflow.com/questions/44375872/pypdf2-returning-blank-pdf-after-copy
+        FileHandling.ensureExistance(self.temporalFolder)
 
-    FileHandling.ensureExistance(temporalFolder)
+        pdf_writer = PyPDF2.PdfWriter()
+        smallerPdfs = []
 
-    pdf_writer = PyPDF2.PdfWriter()
-    smallerPdfs = []
+        if not imageList:
+            FileHandling.deleteFolder(self.temporalFolder)
+            # print("Can't create " + output_pdf)
+            return
 
-    if not imageList:
-        FileHandling.deleteFolder(temporalFolder)
-        # print("Can't create " + output_pdf)
-        return False
+        cover = Image.open(os.path.join(self.imageFolder, imageList[0]))
+        width = cover.width
+        width = Counter(
+            [Image.open(os.path.join(self.imageFolder, x)).width for x in imageList]
+        ).most_common(1)[0][0]
 
-    cover = Image.open(os.path.join(image_folder, imageList[0]))
-    width = cover.width
-    width = Counter(
-        [Image.open(os.path.join(image_folder, x)).width for x in imageList]
-    ).most_common(1)[0][0]
+        for image_file in imageList:
+            image_path = os.path.join(self.imageFolder, image_file)
 
-    for image_file in imageList:
-        image_path = os.path.join(image_folder, image_file)
+            # Open each image file using PIL
+            image = Image.open(image_path)
+            pageNumber = round(image.width / width)
 
-        # Open each image file using PIL
-        image = Image.open(image_path)
-        pageNumber = round(image.width / width)
+            for i in range(pageNumber):  # Number of pages in width
 
-        for i in range(pageNumber):  # Number of pages in width
+                fileName = self.temporalFolder + "/" + image_file[:-4] + str(i) + ".pdf"
 
-            fileName = temporalFolder + "/" + image_file[:-4] + str(i) + ".pdf"
+                pdf_page = canvas.Canvas(fileName, pagesize=(width, image.height))
+                pdf_page.drawImage(
+                    image_path, -i * width, 0, width=image.width, height=image.height
+                )
+                pdf_page.showPage()
+                pdf_page.save()
 
-            pdf_page = canvas.Canvas(fileName, pagesize=(width, image.height))
-            pdf_page.drawImage(
-                image_path, -i * width, 0, width=image.width, height=image.height
-            )
-            pdf_page.showPage()
-            pdf_page.save()
+                # We open the pdfs manually so empty pages don't appear
+                smallerPdfs.append(PyPDF2.PdfReader(open(fileName, "rb")))
+                # We don't close the pdfs manually
 
-            # We open the pdfs manually so empty pages don't appear
-            smallerPdfs.append(PyPDF2.PdfReader(open(fileName, "rb")))
-            # We don't close the pdfs manually
+        for pdf in smallerPdfs:
+            pdf_writer.add_page(pdf.pages[0])
 
-    for pdf in smallerPdfs:
-        pdf_writer.add_page(pdf.pages[0])
+        # Save the resulting PDF to the specified output path
+        with open(outputFile, "wb") as output:
+            pdf_writer.write(output)
 
-    # Save the resulting PDF to the specified output path
-    with open(output_pdf, "wb") as output:
-        pdf_writer.write(output)
+        FileHandling.deleteFolder(self.temporalFolder)
 
-    FileHandling.deleteFolder(temporalFolder)
+        print(outputFile + " created successfully!")
 
-    print(output_pdf + " created successfully!")
+    def createCBZ(self, imagesList: List[str], outputFile: str) -> None:
+        """
+        Creates a CBZ (Comic Book Zip) file from a list of images.
+        
+        Args:
+            - imagesList (List[str]): List of image filenames to include in the CBZ.
+            - outputFile (str): The path where the output CBZ will be saved.
+            
+        Returns:
+            - None
+        """
+        FileHandling.ensureExistance(self.temporalFolder)
 
+        if sorted(imagesList) != imagesList:
+            for image_file in imagesList:
+                FileHandling.copyFile(
+                    self.imageFolder,
+                    image_file,
+                    self.temporalFolder,
+                    str(imagesList.index(image_file)) + ".jpg",
+                )
+            images_folder = self.temporalFolder
+            imagesList = FileHandling.findPatternFolder(self.temporalFolder, ".jpg$")
 
-def create_cbz(images_folder, imagesList, output_cbz, temporalFolder=".Temporal"):
+        with zipfile.ZipFile(outputFile, "w", zipfile.ZIP_DEFLATED) as cbz:
+            for image_file in imagesList:
+                image_path = os.path.join(images_folder, image_file)
+                with Image.open(image_path) as img:  # Does this do anything?
+                    # rgb_image = img.convert("RGB")
+                    cbz.write(image_path, arcname=os.path.basename(image_path))
 
-    FileHandling.ensureExistance(temporalFolder)
-    if sorted(imagesList) != imagesList:
-        for image_file in imagesList:
-            FileHandling.copyFile(
-                images_folder,
-                image_file,
-                temporalFolder,
-                str(imagesList.index(image_file)) + ".jpg",
-            )
-        images_folder = temporalFolder
-        imagesList = FileHandling.findPatternFolder(temporalFolder, ".jpg$")
+        FileHandling.deleteFolder(self.temporalFolder)
 
-    with zipfile.ZipFile(output_cbz, "w", zipfile.ZIP_DEFLATED) as cbz:
-        for image_file in imagesList:
-            image_path = os.path.join(images_folder, image_file)
-            with Image.open(image_path) as img:  # Does this do anything?
-                # rgb_image = img.convert("RGB")
-                cbz.write(image_path, arcname=os.path.basename(image_path))
-
-    FileHandling.deleteFolder(temporalFolder)
-
-    print(output_cbz + " created successfully!")
+        print(outputFile + " created successfully!")
