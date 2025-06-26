@@ -78,6 +78,14 @@ class MangaCreator:
                 return key
 
     def createFiles(self, division: str, extension: str) -> None:
+        methodName = f"create{extension.upper()}"
+        method = getattr(self, methodName, None)
+
+        # Check if the method exists and is callable
+        if not callable(method):
+            print(f"Unsupported extension: {extension}")
+            return
+
         finalFolder = os.path.join(
             self.callerDirectory, self.manga.replace(" ", "") + " " + extension.upper()
         )
@@ -87,18 +95,7 @@ class MangaCreator:
         names = [n + "." + extension.lower() for n in self.getNames(division)]
 
         for i, segment in enumerate(dividedImages):
-            if extension.lower() == "pdf":
-                self.createPDF(
-                    segment[::-1],
-                    os.path.join(finalFolder, names[i]),
-                )
-            elif extension.lower() == "cbz":
-                self.createCBZ(
-                    segment[::-1],
-                    os.path.join(finalFolder, names[i]),
-                )
-            else:
-                raise ValueError("Unsupported extension: " + extension)
+            method(segment, os.path.join(finalFolder, names[i]))
 
         zipping.zipAndDelete(self.imageFolder)
 
@@ -258,20 +255,18 @@ class MangaCreator:
         """
         FileHandling.ensureExistance(self.temporalFolder)
 
-        if sorted(imagesList) != imagesList:
-            for image_file in imagesList:
-                FileHandling.copyFile(
-                    self.imageFolder,
-                    image_file,
-                    self.temporalFolder,
-                    str(imagesList.index(image_file)) + ".jpg",
-                )
-            images_folder = self.temporalFolder
-            imagesList = FileHandling.findPatternFolder(self.temporalFolder, ".jpg$")
+        for image_file in imagesList:
+            FileHandling.copyFile(
+                self.imageFolder,
+                image_file,
+                self.temporalFolder,
+                str(imagesList.index(image_file)) + ".jpg",
+            )
+        imagesList = FileHandling.findPatternFolder(self.temporalFolder, ".jpg$")
 
         with zipfile.ZipFile(outputFile, "w", zipfile.ZIP_DEFLATED) as cbz:
             for image_file in imagesList:
-                image_path = os.path.join(images_folder, image_file)
+                image_path = os.path.join(self.temporalFolder, image_file)
                 with Image.open(image_path) as img:  # Does this do anything?
                     # rgb_image = img.convert("RGB")
                     cbz.write(image_path, arcname=os.path.basename(image_path))
