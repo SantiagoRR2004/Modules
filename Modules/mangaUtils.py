@@ -32,7 +32,7 @@ class MangaCreator:
         )
         self.imageFolder = imageFolder
         FileHandling.ensureExistance(imageFolder)
-        self.images = FileHandling.findPatternFolder(imageFolder, ".jpg$")
+        self.images = os.listdir(imageFolder)
 
     def getEnumeration(self) -> Dict[str, List[str]]:
         """
@@ -142,13 +142,13 @@ class MangaCreator:
             segment = []
             for j in range(len(self.enumeration[division])):
                 if self.enumeration[division][j] == i:
-                    segment.extend(
-                        [
-                            x
-                            for x in self.images
-                            if x[:-7] == self.enumeration[self.minimum][j]
-                        ]
-                    )
+
+                    for image in self.images:
+                        marker = "".join(image.split(".")[:-1])  # Remove the extension
+                        marker = marker[:-3] # No more than 999 images
+                        if marker == self.enumeration[self.minimum][j]:
+                            segment.append(image)
+
             toret.append(segment)
 
         return toret
