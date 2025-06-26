@@ -1,6 +1,4 @@
-from Modules import FileHandling
-from Modules import CsvHandling
-from Modules import zipping
+from Modules import FileHandling, CsvHandling, zipping
 from typing import List, Dict
 import PyPDF2
 from reportlab.pdfgen import canvas
@@ -200,6 +198,8 @@ class MangaCreator:
         """
         Creates a PDF file from a list of images.
 
+        THIS IS DEPRECATED BECAUSE CALIBRE HANDLES ZIPS BETTER.
+
         Args:
             - imageList (List[str]): List of image filenames to include in the PDF.
             - outputFile (str): The path where the output PDF will be saved.
@@ -251,6 +251,8 @@ class MangaCreator:
         """
         Creates a CBZ (Comic Book Zip) file from a list of images.
 
+        THIS IS DEPRECATED BECAUSE CALIBRE HANDLES ZIPS BETTER.
+
         Args:
             - imagesList (List[str]): List of image filenames to include in the CBZ.
             - outputFile (str): The path where the output CBZ will be saved.
@@ -273,3 +275,29 @@ class MangaCreator:
                 with Image.open(image_path) as img:  # Does this do anything?
                     # rgb_image = img.convert("RGB")
                     cbz.write(image_path, arcname=os.path.basename(image_path))
+
+    def createZIP(self, imagesList: List[str], outputFile: str) -> None:
+        """
+        Creates a ZIP file from a list of images.
+
+        Args:
+            - imagesList (List[str]): List of image filenames to include in the ZIP.
+            - outputFile (str): The path where the output ZIP will be saved.
+
+        Returns:
+            - None
+        """
+        # First we create the folder
+        FileHandling.ensureExistance(outputFile[:-len(".zip")])
+
+        # Then we copy the images
+        for image_file in imagesList:
+            FileHandling.copyFile(
+                self.imageFolder,
+                image_file,
+                outputFile[:-len(".zip")],
+                image_file,
+            )
+
+        # Finally we zip the folder
+        zipping.zipAndDelete(outputFile[:-len(".zip")])
