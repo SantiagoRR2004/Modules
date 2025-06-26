@@ -103,7 +103,13 @@ class MangaCreator:
             if not segment:
                 print(f"No images found for '{names[i]}'.")
             else:
-                method(segment, os.path.join(finalFolder, names[i]))
+                fileName = os.path.join(finalFolder, names[i])
+
+                try:
+                    method(segment, fileName)
+                    print(f"{fileName} created successfully!")
+                except Exception as e:
+                    print(f"Error creating {names[i]}: {e}")
 
         # Clean up
         zipping.zipAndDelete(self.imageFolder)
@@ -241,8 +247,6 @@ class MangaCreator:
         with open(outputFile, "wb") as output:
             pdf_writer.write(output)
 
-        print(outputFile + " created successfully!")
-
     def createCBZ(self, imagesList: List[str], outputFile: str) -> None:
         """
         Creates a CBZ (Comic Book Zip) file from a list of images.
@@ -269,5 +273,3 @@ class MangaCreator:
                 with Image.open(image_path) as img:  # Does this do anything?
                     # rgb_image = img.convert("RGB")
                     cbz.write(image_path, arcname=os.path.basename(image_path))
-
-        print(outputFile + " created successfully!")
