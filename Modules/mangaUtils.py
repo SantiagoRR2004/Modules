@@ -109,7 +109,6 @@ class MangaCreator:
         zipping.zipAndDelete(self.imageFolder)
         FileHandling.deleteFolder(self.temporalFolder)
 
-
     def divider(self, division: str) -> List[List[str]]:
         """
         Divides the images based on the unique values in the specified division.
@@ -270,6 +269,5 @@ class MangaCreator:
                 with Image.open(image_path) as img:  # Does this do anything?
                     # rgb_image = img.convert("RGB")
                     cbz.write(image_path, arcname=os.path.basename(image_path))
-
 
         print(outputFile + " created successfully!")
