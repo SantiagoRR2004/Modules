@@ -186,11 +186,11 @@ class MangaCreator:
     def createPDF(self, imageList: List[str], outputFile: str) -> None:
         """
         Creates a PDF file from a list of images.
-        
+
         Args:
             - imageList (List[str]): List of image filenames to include in the PDF.
             - outputFile (str): The path where the output PDF will be saved.
-            
+
         Returns:
             - None
         """
@@ -248,11 +248,11 @@ class MangaCreator:
     def createCBZ(self, imagesList: List[str], outputFile: str) -> None:
         """
         Creates a CBZ (Comic Book Zip) file from a list of images.
-        
+
         Args:
             - imagesList (List[str]): List of image filenames to include in the CBZ.
             - outputFile (str): The path where the output CBZ will be saved.
-            
+
         Returns:
             - None
         """
