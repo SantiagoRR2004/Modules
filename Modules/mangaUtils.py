@@ -145,7 +145,7 @@ class MangaCreator:
 
                     for image in self.images:
                         marker = "".join(image.split(".")[:-1])  # Remove the extension
-                        marker = marker[:-3] # No more than 999 images
+                        marker = marker[:-3]  # No more than 999 images
                         if marker == self.enumeration[self.minimum][j]:
                             segment.append(image)
 
