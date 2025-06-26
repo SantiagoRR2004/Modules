@@ -288,16 +288,16 @@ class MangaCreator:
             - None
         """
         # First we create the folder
-        FileHandling.ensureExistance(outputFile[:-len(".zip")])
+        FileHandling.ensureExistance(outputFile[: -len(".zip")])
 
         # Then we copy the images
         for image_file in imagesList:
             FileHandling.copyFile(
                 self.imageFolder,
                 image_file,
-                outputFile[:-len(".zip")],
+                outputFile[: -len(".zip")],
                 image_file,
             )
 
         # Finally we zip the folder
-        zipping.zipAndDelete(outputFile[:-len(".zip")])
+        zipping.zipAndDelete(outputFile[: -len(".zip")])
