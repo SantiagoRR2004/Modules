@@ -32,7 +32,7 @@ class MangaCreator:
         )
         self.imageFolder = imageFolder
         FileHandling.ensureExistance(imageFolder)
-        self.images = os.listdir(imageFolder)
+        self.images = sorted(os.listdir(imageFolder))
 
     def getEnumeration(self) -> Dict[str, List[str]]:
         """
