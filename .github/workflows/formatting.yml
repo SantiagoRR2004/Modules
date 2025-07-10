@@ -1,4 +1,4 @@
-name: Formatting code with Black and Prettier
+name: Formatting code with Black
 
 on:
   push:
@@ -29,26 +29,13 @@ jobs:
         run: |
           black . || true
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "16"
-
-      - name: Install Prettier
-        run: |
-          npm install --global prettier
-
-      - name: Format JSON files with Prettier
-        run: |
-          prettier --write "**/*.json"
-
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           if ! git diff --quiet; then
             git add .
-            git commit -m "chore: Auto-format code with Black and Prettier [GitHub Action]"
+            git commit -m "chore: Auto-format code with Black [GitHub Action]"
             git push
           else
             echo "No changes to push."
