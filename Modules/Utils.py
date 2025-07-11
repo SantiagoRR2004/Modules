@@ -3,6 +3,8 @@ import os
 import subprocess
 import shutil
 import json
+import importlib.util
+
 
 def calculatePercentage(strings):
     counts = {}  # Dictionary to store string counts
@@ -107,12 +109,9 @@ def confirmImports(modules: dict) -> None:
     Returns:
         None
     """
-    import importlib.util
-
     for pythonName, module in modules.items():
         if not importlib.util.find_spec(pythonName):
             # Should try to use runTerminal
-            import subprocess
 
             try:
                 process = subprocess.run(

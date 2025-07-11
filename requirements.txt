@@ -1,0 +1,12 @@
+beautifulsoup4
+networkx
+pandas
+pillow
+pycryptodome
+pytube
+pyvis
+requests
+selenium
+secretstorage
+tqdm
+webdriver-manager
