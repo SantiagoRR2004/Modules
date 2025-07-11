@@ -12,8 +12,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import sqlite3
-from Cryptodome.Cipher import AES
-from Cryptodome.Protocol.KDF import PBKDF2
+from Crypto.Cipher import AES
+from Crypto.Protocol.KDF import PBKDF2
 import secretstorage
 import sys
 

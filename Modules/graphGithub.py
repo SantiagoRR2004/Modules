@@ -1,10 +1,4 @@
-from Modules import Utils
 from Modules import github
-
-
-Utils.confirmImports({"networkx": "networkx", "tqdm": "tqdm"})
-
-
 import networkx as nx
 import tqdm
 
