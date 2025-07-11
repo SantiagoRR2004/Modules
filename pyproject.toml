@@ -9,10 +9,8 @@ description = "Some things I made"
 readme = "README.md"
 requires-python = ">=3.7"
 license = { text = "GPL-3.0-or-later" }
-dependencies = [
-  "some-package>=1.0",
-  # list your runtime dependencies here; these can also come from requirements.txt
-]
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools.packages.find]
 where = ["."]
