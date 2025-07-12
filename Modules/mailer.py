@@ -3,7 +3,6 @@ import imaplib
 import email
 from Modules import FileHandling
 import datetime
-import os
 
 
 def send_notification(
@@ -41,7 +40,7 @@ def send_notification(
     msg["From"] = username
     password = data["password"]
 
-    if notCheckIfAlready(msg):
+    if notCheckIfAlready(msg, passwordFileLocation):
         sendMail(smtp_server, smtp_port, username, password, msg)
 
 
@@ -54,14 +53,11 @@ def sendMail(smtpServer, smtpPort, username, password, message):
         print("Mail sent")
 
 
-def notCheckIfAlready(message):
+def notCheckIfAlready(message, passwordFileLocation: str):
 
     # Set your email and password
     data = FileHandling.openJson(
-        os.path.join(
-            os.path.dirname((os.path.dirname(os.path.abspath(__file__)))),
-            "Password.json",
-        )
+        passwordFileLocation
     )
     email_address = data["username"]
     password = data["password"]
