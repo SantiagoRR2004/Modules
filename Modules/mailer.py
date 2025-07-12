@@ -9,6 +9,7 @@ import os
 def send_notification(
     subject: str,
     body: str,
+    passwordFileLocation: str,
     receivers: list = None,
     carbonCopy: list = None,
     hiddenCarbonCopy: list = None,
@@ -16,12 +17,7 @@ def send_notification(
     msg = email.message.EmailMessage()
     msg.set_content(body)
     msg["Subject"] = subject
-    data = FileHandling.openJson(
-        os.path.join(
-            os.path.dirname((os.path.dirname(os.path.abspath(__file__)))),
-            "Password.json",
-        )
-    )
+    data = FileHandling.openJson(passwordFileLocation)
 
     if receivers:
         msg["To"] = ", ".join(receivers)
