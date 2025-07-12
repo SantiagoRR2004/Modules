@@ -9,6 +9,7 @@ description = "Some things I made"
 readme = "README.md"
 requires-python = ">=3.7"
 license = { text = "GPL-3.0-or-later" }
+dynamic = ["dependencies"]
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 
