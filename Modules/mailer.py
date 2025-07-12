@@ -56,9 +56,7 @@ def sendMail(smtpServer, smtpPort, username, password, message):
 def notCheckIfAlready(message, passwordFileLocation: str):
 
     # Set your email and password
-    data = FileHandling.openJson(
-        passwordFileLocation
-    )
+    data = FileHandling.openJson(passwordFileLocation)
     email_address = data["username"]
     password = data["password"]
 
