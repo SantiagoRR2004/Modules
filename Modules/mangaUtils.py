@@ -212,8 +212,6 @@ class MangaCreator:
         pdf_writer = PyPDF2.PdfWriter()
         smallerPdfs = []
 
-        cover = Image.open(os.path.join(self.imageFolder, imageList[0]))
-        width = cover.width
         width = Counter(
             [Image.open(os.path.join(self.imageFolder, x)).width for x in imageList]
         ).most_common(1)[0][0]
@@ -290,14 +288,49 @@ class MangaCreator:
         # First we create the folder
         FileHandling.ensureExistance(outputFile[: -len(".zip")])
 
-        # Then we copy the images
+        width = Counter(
+            [Image.open(os.path.join(self.imageFolder, x)).width for x in imagesList]
+        ).most_common(1)[0][0]
+
+        # Process images and handle oversized ones
         for image_file in imagesList:
-            FileHandling.copyFile(
-                self.imageFolder,
-                image_file,
-                outputFile[: -len(".zip")],
-                image_file,
-            )
+            image_path = os.path.join(self.imageFolder, image_file)
+            image = Image.open(image_path)
+            
+            # Calculate how many pages this image spans
+            pageNumber = round(image.width / width)
+            
+            if pageNumber > 1:
+                # Image is too wide, divide it into multiple images
+                base_filename = image_file[:-4]  # Remove extension
+                extension = image_file[-4:]  # Get extension
+                
+                for i in reversed(range(pageNumber)):
+                    # Create cropped image for each page
+                    left = i * width
+                    right = min((i + 1) * width, image.width)
+                    cropped_image = image.crop((left, 0, right, image.height))
+                    
+                    # Save the cropped image to temporal folder
+                    divided_filename = f"{base_filename}_{pageNumber-1-i:03d}{extension}"
+                    divided_path = os.path.join(self.temporalFolder, divided_filename)
+                    cropped_image.save(divided_path)
+                    
+                    # Copy the divided image to the output folder
+                    FileHandling.copyFile(
+                        self.temporalFolder,
+                        divided_filename,
+                        outputFile[: -len(".zip")],
+                        divided_filename,
+                    )
+            else:
+                # Image fits within standard width, copy as is
+                FileHandling.copyFile(
+                    self.imageFolder,
+                    image_file,
+                    outputFile[: -len(".zip")],
+                    image_file,
+                )
 
         # Finally we zip the folder
         zipping.zipAndDelete(outputFile[: -len(".zip")])
