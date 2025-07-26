@@ -296,26 +296,28 @@ class MangaCreator:
         for image_file in imagesList:
             image_path = os.path.join(self.imageFolder, image_file)
             image = Image.open(image_path)
-            
+
             # Calculate how many pages this image spans
             pageNumber = round(image.width / width)
-            
+
             if pageNumber > 1:
                 # Image is too wide, divide it into multiple images
                 base_filename = image_file[:-4]  # Remove extension
                 extension = image_file[-4:]  # Get extension
-                
+
                 for i in reversed(range(pageNumber)):
                     # Create cropped image for each page
                     left = i * width
                     right = min((i + 1) * width, image.width)
                     cropped_image = image.crop((left, 0, right, image.height))
-                    
+
                     # Save the cropped image to temporal folder
-                    divided_filename = f"{base_filename}_{pageNumber-1-i:03d}{extension}"
+                    divided_filename = (
+                        f"{base_filename}_{pageNumber-1-i:03d}{extension}"
+                    )
                     divided_path = os.path.join(self.temporalFolder, divided_filename)
                     cropped_image.save(divided_path)
-                    
+
                     # Copy the divided image to the output folder
                     FileHandling.copyFile(
                         self.temporalFolder,
