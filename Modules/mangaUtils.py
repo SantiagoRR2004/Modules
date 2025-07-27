@@ -224,7 +224,9 @@ class MangaCreator:
             pageNumber = round(image.width / width)
 
             # Normal sized image, create PDF directly
-            temp_pdf_path = os.path.join(self.temporalFolder, f"{os.path.splitext(image_file)[0]}.pdf")
+            temp_pdf_path = os.path.join(
+                self.temporalFolder, f"{os.path.splitext(image_file)[0]}.pdf"
+            )
             pdf_page = canvas.Canvas(
                 temp_pdf_path, pagesize=(image.width, image.height)
             )
