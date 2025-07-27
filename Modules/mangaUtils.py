@@ -302,8 +302,7 @@ class MangaCreator:
 
             if pageNumber > 1:
                 # Image is too wide, divide it into multiple images
-                base_filename = image_file[:-4]  # Remove extension
-                extension = image_file[-4:]  # Get extension
+                base_filename, extension = os.path.splitext(image_file)
 
                 for i in reversed(range(pageNumber)):
                     # Create cropped image for each page
