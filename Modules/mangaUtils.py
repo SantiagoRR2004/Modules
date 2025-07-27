@@ -223,20 +223,53 @@ class MangaCreator:
             image = Image.open(image_path)
             pageNumber = round(image.width / width)
 
-            for i in range(pageNumber):  # Number of pages in width
+            # Normal sized image, create PDF directly
+            temp_pdf_path = os.path.join(self.temporalFolder, f"{os.path.splitext(image_file)[0]}.pdf")
+            pdf_page = canvas.Canvas(
+                temp_pdf_path, pagesize=(image.width, image.height)
+            )
+            pdf_page.drawImage(image_path, 0, 0, width=image.width, height=image.height)
+            pdf_page.showPage()
+            pdf_page.save()
 
-                fileName = self.temporalFolder + "/" + image_file[:-4] + str(i) + ".pdf"
+            smallerPdfs.append(PyPDF2.PdfReader(open(temp_pdf_path, "rb")))
 
-                pdf_page = canvas.Canvas(fileName, pagesize=(width, image.height))
-                pdf_page.drawImage(
-                    image_path, -i * width, 0, width=image.width, height=image.height
-                )
-                pdf_page.showPage()
-                pdf_page.save()
+            if pageNumber > 1:
+                # Image is too wide, divide it into multiple pages
+                base_filename = os.path.splitext(image_file)[0]
 
-                # We open the pdfs manually so empty pages don't appear
-                smallerPdfs.append(PyPDF2.PdfReader(open(fileName, "rb")))
-                # We don't close the pdfs manually
+                for i in reversed(range(pageNumber)):
+                    # Create cropped image for each page
+                    left = i * width
+                    right = min((i + 1) * width, image.width)
+                    cropped_image = image.crop((left, 0, right, image.height))
+
+                    # Save cropped image to temporary file
+                    temp_image_path = os.path.join(
+                        self.temporalFolder, f"{base_filename}_{pageNumber-1-i:03d}.jpg"
+                    )
+                    cropped_image.save(temp_image_path)
+
+                    # Create PDF from the cropped image
+                    temp_pdf_path = os.path.join(
+                        self.temporalFolder, f"{base_filename}_{pageNumber-1-i:03d}.pdf"
+                    )
+                    pdf_page = canvas.Canvas(
+                        temp_pdf_path,
+                        pagesize=(cropped_image.width, cropped_image.height),
+                    )
+                    pdf_page.drawImage(
+                        temp_image_path,
+                        0,
+                        0,
+                        width=cropped_image.width,
+                        height=cropped_image.height,
+                    )
+                    pdf_page.showPage()
+                    pdf_page.save()
+
+                    # Add to the collection
+                    smallerPdfs.append(PyPDF2.PdfReader(open(temp_pdf_path, "rb")))
 
         for pdf in smallerPdfs:
             pdf_writer.add_page(pdf.pages[0])
