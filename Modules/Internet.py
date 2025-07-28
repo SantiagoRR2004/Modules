@@ -60,7 +60,7 @@ def configureChrome() -> webdriver.Chrome:
 def clickButton(driver: webdriver.Chrome, name: str) -> None:
     """
     Clicks a button on the webpage by its value attribute.
-    
+
     Args:
         - driver (webdriver.Chrome): The Chrome WebDriver instance.
         - name (str): The value of the button to be clicked.
@@ -73,9 +73,14 @@ def clickButton(driver: webdriver.Chrome, name: str) -> None:
     )  # Wait up to 10 seconds for the button to be clickable
 
     button = wait.until(
-        EC.element_to_be_clickable((By.XPATH, f"//button[@value='{name}'] | //input[@type='submit' and @value='{name}']"))
+        EC.element_to_be_clickable(
+            (
+                By.XPATH,
+                f"//button[@value='{name}'] | //input[@type='submit' and @value='{name}']",
+            )
+        )
     )
-    
+
     button.click()
 
 
