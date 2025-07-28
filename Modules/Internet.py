@@ -37,10 +37,13 @@ def mangasee123UrlsXML(web):
 def configureChrome() -> webdriver.Chrome:
     """
     Configures a Chrome WebDriver instance
-    and tries to say it is not automated
+    and tries to say it is not automated.
+
+    Args:
+        - None
 
     Returns:
-        webdriver.Chrome: A WebDriver instance
+        - webdriver.Chrome: A WebDriver instance
     """
     # pip install --upgrade selenium
     chrome_options = webdriver.ChromeOptions()
@@ -54,13 +57,25 @@ def configureChrome() -> webdriver.Chrome:
     return webdriver.Chrome(options=chrome_options, service=service)
 
 
-def clickButton(driver, name):
+def clickButton(driver: webdriver.Chrome, name: str) -> None:
+    """
+    Clicks a button on the webpage by its value attribute.
+    
+    Args:
+        - driver (webdriver.Chrome): The Chrome WebDriver instance.
+        - name (str): The value of the button to be clicked.
+
+    Returns:
+        - None
+    """
     wait = WebDriverWait(
         driver, 10
     )  # Wait up to 10 seconds for the button to be clickable
+
     button = wait.until(
-        EC.element_to_be_clickable((By.XPATH, "//button[contains(., '" + name + "')]"))
+        EC.element_to_be_clickable((By.XPATH, f"//button[@value='{name}'] | //input[@type='submit' and @value='{name}']"))
     )
+    
     button.click()
 
 
@@ -183,7 +198,7 @@ def getCookies() -> list:
 
     columnNames = [column[1] for column in cursor.fetchall()]
 
-    cursor.execute(f"SELECT {", ".join(columnNames)} FROM cookies;")
+    cursor.execute(f"SELECT {', '.join(columnNames)} FROM cookies;")
     unformattedData = cursor.fetchall()
     conn.close()
     data = []
