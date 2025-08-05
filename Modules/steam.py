@@ -7,6 +7,9 @@ import re
 BASE = "https://steamcommunity.com/"
 COLOR = "#2a475e"
 
+NORMALCALLS = 0
+APICALLS = 0
+
 
 def getCorrectPersonURL(username: str) -> str:
     """
@@ -88,10 +91,11 @@ def getFriends(username: str) -> List[str]:
     Returns:
         - List[str]: The list of URLs for the friends' profiles.
     """
-
+    global NORMALCALLS
     url = getCorrectPersonURL(username)
 
     response = requests.get(urljoin(url, "friends/"))
+    NORMALCALLS += 1
     soup = BeautifulSoup(response.text, "html.parser")
 
     friendClasses = re.compile(r"\bfriend_block_v2\b")
@@ -124,8 +128,10 @@ def getName(username: str) -> str:
         - str: The name of the user.
     """
     url = getCorrectPersonURL(username)
+    global NORMALCALLS
 
     response = requests.get(url)
+    NORMALCALLS += 1
     soup = BeautifulSoup(response.text, "html.parser")
 
     name = soup.find("span", class_="actual_persona_name").text
