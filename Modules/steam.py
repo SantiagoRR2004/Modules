@@ -260,9 +260,9 @@ def getName(username: str) -> str:
     return players[0]["personaname"]
 
 
-def getFriends(username: str) -> List[str]:
+def getGames(username: str) -> List[str]:
     """
-    Get the list of friends for a Steam user.
+    Get the list of games for a Steam user.
 
     It will return them in the format:
         - https://steamcommunity.com/profiles/12345678901234567
@@ -271,7 +271,8 @@ def getFriends(username: str) -> List[str]:
         - username (str): The username to check.
 
     Returns:
-        - List[str]: The list of URLs for the friends' profiles.
+        - List[str]: The list of game names owned by the user.
+            Free games are included if he has played them.
     """
     global APICALLS
     url = getCorrectPersonURL(username)
