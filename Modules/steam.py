@@ -10,6 +10,100 @@ COLOR = "#2a475e"
 NORMALCALLS = 0
 APICALLS = 0
 
+STEAM_API_KEY = "REPLACE_WITH_YOUR_STEAM_API_KEY"
+
+
+def resolveVanityURL(url: str) -> str:
+    """
+    Resolve a Steam vanity URL to a SteamID64.
+
+    Args:
+        - url (str): The custom Steam profile name.
+
+    Returns:
+        - str: The SteamID64 or None if not found.
+    """
+    global APICALLS
+    parsedUrl = urlparse(url)
+
+    finalPart = parsedUrl.path.strip("/").split("/")[-1]
+
+    if finalPart.isdigit() and len(finalPart) == 17:
+        # If the final part is already a valid SteamID64, return it
+        return finalPart
+
+    endpoint = "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/"
+    params = {
+        "key": STEAM_API_KEY,
+        "vanityurl": finalPart,
+    }
+
+    response = requests.get(endpoint, params=params)
+    APICALLS += 1
+    data = response.json()
+
+    if data["response"]["success"] == 1:
+        return data["response"]["steamid"]
+    else:
+        return None
+
+
+def validIDURL(url: str) -> bool:
+    """
+    Check if a URL is a valid Steam ID URL.
+
+    Args:
+        - url (str): The URL to check.
+
+    Returns:
+        - bool: True if the URL is valid, False otherwise.
+    """
+    parsedUrl = urlparse(url)
+
+    # Get the parts of the path after the BASE URL
+    pathParts = parsedUrl.path.strip("/").split("/")
+
+    if len(pathParts) != 2:
+        return False
+
+    if pathParts[0] == "profiles":
+        # Need to make sure the ID is 17 digits long
+        if len(pathParts[1]) != 17 or not pathParts[1].isdigit():
+            return False
+
+        return True
+
+    return False
+
+
+def validVanityURL(url: str) -> bool:
+    """
+    Check if a URL is a valid Steam vanity URL.
+
+    Args:
+        - url (str): The URL to check.
+
+    Returns:
+        - bool: True if the URL is valid, False otherwise.
+    """
+    # Parse the URL and check the path
+    parsedUrl = urlparse(url)
+
+    # Get the parts of the path after the BASE URL
+    pathParts = parsedUrl.path.strip("/").split("/")
+
+    if len(pathParts) != 2:
+        return False
+
+    if pathParts[0] == "id":
+        # Need to make sure the username is not empty
+        if not pathParts[1]:
+            return False
+
+        return True
+
+    return False
+
 
 def getCorrectPersonURL(username: str) -> str:
     """
@@ -127,13 +221,38 @@ def getName(username: str) -> str:
     Returns:
         - str: The name of the user.
     """
-    url = getCorrectPersonURL(username)
     global NORMALCALLS
+    global APICALLS
 
+    url = getCorrectPersonURL(username)
+
+    # If it is already the name, return it
+    if validVanityURL(url):
+        return url.strip("/").split("/")[-1]
+
+    # Try to get the name from the HTML
     response = requests.get(url)
     NORMALCALLS += 1
-    soup = BeautifulSoup(response.text, "html.parser")
+    if response.status_code != 429:
+        soup = BeautifulSoup(response.text, "html.parser")
+        name = soup.find("span", class_="actual_persona_name").text
 
-    name = soup.find("span", class_="actual_persona_name").text
+        return name
 
-    return name
+    # If it fails, try to get it from the API
+    steamid = resolveVanityURL(url)
+    if not steamid:
+        raise ValueError("Could not resolve vanity URL")
+
+    endpoint = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/"
+    params = {"key": STEAM_API_KEY, "steamids": steamid}
+
+    response = requests.get(endpoint, params=params)
+    APICALLS += 1
+    data = response.json()
+
+    players = data["response"]["players"]
+    if not players:
+        raise ValueError("No user found")
+
+    return players[0]["personaname"]
