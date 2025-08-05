@@ -111,7 +111,7 @@ def addGames(
 
             for game in games:
                 if game not in graph.nodes():
-                    graph.add_node(game, type=newCodeWords, color="Red")
+                    graph.add_node(game, type=newCodeWords, color=steam.COLOR_GAMES)
 
                 graph.add_edge(node, game)
                 graph.add_edge(game, node)
