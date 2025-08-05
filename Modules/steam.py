@@ -188,6 +188,7 @@ def getFriends(username: str) -> List[str]:
         - List[str]: The list of URLs for the friends' profiles.
     """
     global NORMALCALLS
+    global APICALLS
     url = getCorrectPersonURL(username)
 
     response = requests.get(urljoin(url, "friends/"))
@@ -208,6 +209,37 @@ def getFriends(username: str) -> List[str]:
         for block in friend_blocks
         if block.get("data-steamid")
     ]
+
+    if steam_ids:
+        # We have found friends, return the list
+        return steam_ids
+
+    # Use the API to get friends if no friends were found
+    steamid = resolveVanityURL(url)
+    endpoint = "https://api.steampowered.com/ISteamUser/GetFriendList/v0001/"
+    params = {
+        "key": STEAM_API_KEY,
+        "steamid": steamid,
+        # "relationship": "friend",
+        # "format": "json",
+    }
+
+    response = requests.get(endpoint, params=params)
+    APICALLS += 1
+
+    if response.status_code == 401:
+        """
+        This means the list is not public.
+        We will return an empty list.
+        """
+        return []
+
+    response.raise_for_status()
+    data = response.json()
+
+    friends = data.get("friends", [])
+    for friend in friends:
+        steam_ids.append(urljoin(BASE, f"profiles/{friend['steamid']}"))
 
     return steam_ids
 
