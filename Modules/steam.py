@@ -17,6 +17,8 @@ def resolveVanityURL(url: str) -> str:
     """
     Resolve a Steam vanity URL to a SteamID64.
 
+    It doesn't do any calls if it is already a valid SteamID64.
+
     Args:
         - url (str): The custom Steam profile name.
 
@@ -256,3 +258,39 @@ def getName(username: str) -> str:
         raise ValueError("No user found")
 
     return players[0]["personaname"]
+
+
+def getFriends(username: str) -> List[str]:
+    """
+    Get the list of friends for a Steam user.
+
+    It will return them in the format:
+        - https://steamcommunity.com/profiles/12345678901234567
+
+    Args:
+        - username (str): The username to check.
+
+    Returns:
+        - List[str]: The list of URLs for the friends' profiles.
+    """
+    global APICALLS
+    url = getCorrectPersonURL(username)
+
+    steamid = resolveVanityURL(url)
+
+    endpoint = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/"
+    params = {
+        "key": STEAM_API_KEY,
+        "steamid": steamid,
+        "include_appinfo": True,
+        "include_played_free_games": True,
+        "format": "json",
+    }
+
+    response = requests.get(endpoint, params=params)
+    response.raise_for_status()  # Ensure we raise an error for bad responses
+    APICALLS += 1
+    data = response.json()
+
+    games = data.get("response", {}).get("games", [])
+    return [g["name"] for g in games]
