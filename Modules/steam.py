@@ -6,6 +6,7 @@ import re
 
 BASE = "https://steamcommunity.com/"
 COLOR = "#2a475e"
+COLOR_GAMES = "#2e5e47"
 
 NORMALCALLS = 0
 APICALLS = 0
