@@ -11,10 +11,8 @@ COLOR_GAMES = "#2e5e47"
 NORMALCALLS = 0
 APICALLS = 0
 
-STEAM_API_KEY = "REPLACE_WITH_YOUR_STEAM_API_KEY"
 
-
-def resolveVanityURL(url: str) -> str:
+def resolveVanityURL(url: str, APIKEY: str) -> str:
     """
     Resolve a Steam vanity URL to a SteamID64.
 
@@ -22,6 +20,7 @@ def resolveVanityURL(url: str) -> str:
 
     Args:
         - url (str): The custom Steam profile name.
+        - APIKEY (str): The Steam API key to use for the request.
 
     Returns:
         - str: The SteamID64 or None if not found.
@@ -37,7 +36,7 @@ def resolveVanityURL(url: str) -> str:
 
     endpoint = "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/"
     params = {
-        "key": STEAM_API_KEY,
+        "key": APIKEY,
         "vanityurl": finalPart,
     }
 
@@ -170,7 +169,7 @@ def getCorrectPersonURL(username: str) -> str:
     return f"{username.strip("/")}/"
 
 
-def getFriends(username: str) -> List[str]:
+def getFriends(username: str, APIKEY: str = None) -> List[str]:
     """
     Get the list of friends for a Steam user.
 
@@ -184,6 +183,7 @@ def getFriends(username: str) -> List[str]:
 
     Args:
         - username (str): The username to check.
+        - APIKEY (str): The Steam API key to use for the request.
 
     Returns:
         - List[str]: The list of URLs for the friends' profiles.
@@ -211,18 +211,18 @@ def getFriends(username: str) -> List[str]:
         if block.get("data-steamid")
     ]
 
-    if steam_ids:
+    if steam_ids or not APIKEY:
         # We have found friends, return the list
         return steam_ids
 
     # Use the API to get friends if no friends were found
-    steamid = resolveVanityURL(url)
+    steamid = resolveVanityURL(url, APIKEY)
     endpoint = "https://api.steampowered.com/ISteamUser/GetFriendList/v0001/"
     params = {
-        "key": STEAM_API_KEY,
+        "key": APIKEY,
         "steamid": steamid,
-        # "relationship": "friend",
-        # "format": "json",
+        "relationship": "friend",
+        "format": "json",
     }
 
     response = requests.get(endpoint, params=params)
@@ -245,13 +245,14 @@ def getFriends(username: str) -> List[str]:
     return steam_ids
 
 
-def getName(username: str) -> str:
+def getName(username: str, APIKEY: str = None) -> str:
     """
     Get the name that a Steam user
     has set in their profile.
 
     Args:
         - username (str): The username to check.
+        - APIKEY (str): The Steam API key to use for the request.
 
     Returns:
         - str: The name of the user.
@@ -280,7 +281,7 @@ def getName(username: str) -> str:
         raise ValueError("Could not resolve vanity URL")
 
     endpoint = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/"
-    params = {"key": STEAM_API_KEY, "steamids": steamid}
+    params = {"key": APIKEY, "steamids": steamid}
 
     response = requests.get(endpoint, params=params)
     APICALLS += 1
@@ -293,7 +294,7 @@ def getName(username: str) -> str:
     return players[0]["personaname"]
 
 
-def getGames(username: str) -> List[str]:
+def getGames(username: str, APIKEY: str) -> List[str]:
     """
     Get the list of games for a Steam user.
 
@@ -302,6 +303,7 @@ def getGames(username: str) -> List[str]:
 
     Args:
         - username (str): The username to check.
+        - APIKEY (str): The Steam API key to use for the request.
 
     Returns:
         - List[str]: The list of game names owned by the user.
@@ -314,7 +316,7 @@ def getGames(username: str) -> List[str]:
 
     endpoint = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/"
     params = {
-        "key": STEAM_API_KEY,
+        "key": APIKEY,
         "steamid": steamid,
         "include_appinfo": True,
         "include_played_free_games": True,
