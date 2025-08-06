@@ -1,22 +1,35 @@
+from Modules import credentials
 import smtplib
 import imaplib
 import email
-from Modules import FileHandling
 import datetime
 
 
 def send_notification(
     subject: str,
     body: str,
-    passwordFileLocation: str,
+    passwords: credentials.PasswordManager,
     receivers: list = None,
     carbonCopy: list = None,
     hiddenCarbonCopy: list = None,
 ):
+    """
+    Send a notification email.
+
+    Args:
+        - subject (str): The subject of the email.
+        - body (str): The body of the email.
+        - passwords (credentials.PasswordManager): The password manager to get credentials.
+        - receivers (list): List of email addresses to send the email to.
+        - carbonCopy (list): List of email addresses to send a carbon copy to.
+        - hiddenCarbonCopy (list): List of email addresses to send a blind carbon copy to.
+
+    Returns:
+        - None
+    """
     msg = email.message.EmailMessage()
     msg.set_content(body)
     msg["Subject"] = subject
-    data = FileHandling.openJson(passwordFileLocation)
 
     if receivers:
         msg["To"] = ", ".join(receivers)
@@ -25,40 +38,47 @@ def send_notification(
         msg["CC"] = ", ".join(carbonCopy)
 
     if hiddenCarbonCopy:
-        hiddenCarbonCopy.append(data["reciever"])
+        hiddenCarbonCopy.append(passwords.getValue("reciever"))
         msg["BCC"] = ", ".join(hiddenCarbonCopy)
     else:
-        msg["BCC"] = data["reciever"]
+        msg["BCC"] = passwords.getValue("reciever")
 
     if not (receivers or carbonCopy or hiddenCarbonCopy):
-        msg["To"] = data["reciever"]
+        msg["To"] = passwords.getValue("reciever")
 
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
 
-    username = data["username"]
-    msg["From"] = username
-    password = data["password"]
+    msg["From"] = passwords.getValue("username")
 
-    if notCheckIfAlready(msg, passwordFileLocation):
-        sendMail(smtp_server, smtp_port, username, password, msg)
+    if notCheckIfAlready(msg, passwords):
+        sendMail(smtp_server, smtp_port, passwords, msg)
 
 
-def sendMail(smtpServer, smtpPort, username, password, message):
+def sendMail(smtpServer, smtpPort, passwords: credentials.PasswordManager, message):
     with smtplib.SMTP(smtpServer, smtpPort) as server:
         server.ehlo()
         server.starttls()
-        server.login(username, password)
+        server.login(passwords.getValue("username"), passwords.getValue("password"))
         server.send_message(message)
         print("Mail sent")
 
 
-def notCheckIfAlready(message, passwordFileLocation: str):
+def notCheckIfAlready(
+    message: email.message.EmailMessage, passwords: credentials.PasswordManager
+) -> bool:
+    """
+    Check if the email has already been sent today.
 
-    # Set your email and password
-    data = FileHandling.openJson(passwordFileLocation)
-    email_address = data["username"]
-    password = data["password"]
+    Args:
+        - message (email.message.EmailMessage): The email message to check.
+        - passwords (credentials.PasswordManager): The password manager to get credentials.
+
+    Returns:
+        - bool: True if the email has not been sent, False otherwise.
+    """  # Set your email and password
+    email_address = passwords.getValue("username")
+    password = passwords.getValue("password")
 
     # Connect to the IMAP server
     with imaplib.IMAP4_SSL("imap.gmail.com") as mail:
