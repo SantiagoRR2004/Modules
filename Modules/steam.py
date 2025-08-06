@@ -6,7 +6,7 @@ import re
 
 BASE = "https://steamcommunity.com/"
 COLOR = "#2a475e"
-COLOR_GAMES = "#2e5e47"
+COLOR_GAMES = "Green"
 
 NORMALCALLS = 0
 APICALLS = 0
@@ -276,7 +276,7 @@ def getName(username: str, APIKEY: str = None) -> str:
         return name
 
     # If it fails, try to get it from the API
-    steamid = resolveVanityURL(url)
+    steamid = resolveVanityURL(url, APIKEY)
     if not steamid:
         raise ValueError("Could not resolve vanity URL")
 
@@ -312,7 +312,7 @@ def getGames(username: str, APIKEY: str) -> List[str]:
     global APICALLS
     url = getCorrectPersonURL(username)
 
-    steamid = resolveVanityURL(url)
+    steamid = resolveVanityURL(url, APIKEY)
 
     endpoint = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/"
     params = {
