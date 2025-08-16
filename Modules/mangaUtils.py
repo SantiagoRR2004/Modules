@@ -339,10 +339,12 @@ class MangaCreator:
                 # Image is too wide, divide it into multiple images
                 base_filename, extension = os.path.splitext(image_file)
 
+                currentWidth = image.width / pageNumber
+
                 for i in reversed(range(pageNumber)):
                     # Create cropped image for each page
-                    left = i * width
-                    right = min((i + 1) * width, image.width)
+                    left = i * currentWidth
+                    right = min((i + 1) * currentWidth, image.width)
                     cropped_image = image.crop((left, 0, right, image.height))
 
                     # Save the cropped image to temporal folder
@@ -359,14 +361,14 @@ class MangaCreator:
                         outputFile[: -len(".zip")],
                         divided_filename,
                     )
-            else:
-                # Image fits within standard width, copy as is
-                FileHandling.copyFile(
-                    self.imageFolder,
-                    image_file,
-                    outputFile[: -len(".zip")],
-                    image_file,
-                )
+
+            # Always add the full image
+            FileHandling.copyFile(
+                self.imageFolder,
+                image_file,
+                outputFile[: -len(".zip")],
+                image_file,
+            )
 
         # Finally we zip the folder
         zipping.zipAndDelete(outputFile[: -len(".zip")])
