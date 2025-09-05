@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from typing import Tuple
+import random
+import time
 
 BASE = "https://github.com"
 COLOR = "#852fa4"
@@ -103,6 +105,8 @@ def getConnection(url: str) -> list:
             # If the response status code is not 200, we can't check for the next page
             url = None
 
+    time.sleep(random.random())
+
     return people
 
 
@@ -149,6 +153,8 @@ def getRepositories(username: str) -> list:
         else:
             # No more pages, break the loop
             url = None
+
+    time.sleep(random.random())
 
     return repositories
 
@@ -214,6 +220,8 @@ def getContributors(repo: str) -> list:
             url = f"{contributorsUrl}?page={number}"
             response = requests.get(url)
             NUMBERCALLS += 1
+
+    time.sleep(random.random())
 
     return contributors
 
@@ -290,6 +298,8 @@ def getRepositoryParent(url: str) -> Tuple[str, str]:
                     typeOfParent = "template"
                     break  # Stop once found
 
+    time.sleep(random.random())
+
     return parent, typeOfParent
 
 
@@ -340,6 +350,8 @@ def getStarredRepositories(username: str) -> list:
         else:
             # No more pages, break the loop
             url = None
+
+    time.sleep(random.random())
 
     return repositories
 
@@ -414,6 +426,8 @@ def getStargazers(repository: str) -> list:
         else:
             # No more pages, break the loop
             url = None
+
+    time.sleep(random.random())
 
     return list(stargazers)
 
