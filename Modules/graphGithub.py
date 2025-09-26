@@ -79,7 +79,7 @@ class GitHubGraphManager:
 
         return graph
 
-    def addContributors(self,graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+    def addContributors(self, graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
         """
         Add the contributors for all the nodes that have
         the type "Repository" in the graph. It adds the contributors
