@@ -1,376 +1,450 @@
 from Modules import github
 import networkx as nx
+import copy
 import tqdm
 
 
-def addRepositories(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
-    """
-    Add the repositories for all the nodes that have
-    the type "User" in the graph. It adds the repositories
-    as their url.
+class GitHubGraphManager:
+    def __init__(self, edgeLabels: bool = False) -> None:
+        """
+        Initialize the GitHubGraphManager.
 
-    When we have found all the repository of a user, we mark it
-    in the attribute "searchData" with the key "ownedGitHubRepositories"
-    so we don't have to search it again.
+        Args:
+            - edgeLabels (bool): Whether to include edge labels in the graph.
+        """
+        self.edgeLabels = edgeLabels
 
-    We also mark the repository with the key "githubOwner".
+    def addRepositories(self, graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+        """
+        Add the repositories for all the nodes that have
+        the type "User" in the graph. It adds the repositories
+        as their url.
 
-    Args:
-        - graph (nx.MultiDiGraph): The graph to be modified.
+        When we have found all the repository of a user, we mark it
+        in the attribute "searchData" with the key "ownedGitHubRepositories"
+        so we don't have to search it again.
 
-    Returns:
-        nx.MultiDiGraph: The graph with the repositories.
-    """
-    nodes, attributeList = zip(*graph.nodes(data=True))
+        We also mark the repository with the key "githubOwner".
 
-    for node, attributes in tqdm.tqdm(
-        zip(nodes, attributeList), total=len(nodes), desc="Adding owned repositories"
-    ):
-        if "User" in attributes["type"]:
-            if not attributes.get("searchData", False) or not attributes[
-                "searchData"
-            ].get("ownedGitHubRepositories", False):
-                repositories = github.getRepositories(node)
+        Args:
+            - graph (nx.MultiDiGraph): The graph to be modified.
 
-                for repo in repositories:
-                    if repo not in graph.nodes():
-                        graph.add_node(
-                            repo, type=("GitHub", "Repository"), color="blue"
-                        )
-                    graph.add_edge(node, repo)
+        Returns:
+            - nx.MultiDiGraph: The graph with the repositories.
+        """
+        graph = copy.deepcopy(graph)
 
-                    # We also need to add that we know the owner of the repository
-                    if not graph.nodes[repo].get("searchData", False):
-                        graph.nodes[repo]["searchData"] = {"githubOwner": True}
+        nodes, attributeList = zip(*graph.nodes(data=True))
+
+        for node, attributes in tqdm.tqdm(
+            zip(nodes, attributeList),
+            total=len(nodes),
+            desc="Adding owned repositories",
+        ):
+            if "User" in attributes["type"]:
+                if not attributes.get("searchData", False) or not attributes[
+                    "searchData"
+                ].get("ownedGitHubRepositories", False):
+                    repositories = github.getRepositories(node)
+
+                    for repo in repositories:
+                        if repo not in graph.nodes():
+                            graph.add_node(
+                                repo, type=("GitHub", "Repository"), color="blue"
+                            )
+
+                        if self.edgeLabels:
+                            graph.add_edge(node, repo, label="owns")
+                        else:
+                            graph.add_edge(node, repo)
+
+                        # We also need to add that we know the owner of the repository
+                        if not graph.nodes[repo].get("searchData", False):
+                            graph.nodes[repo]["searchData"] = {"githubOwner": True}
+                        else:
+                            graph.nodes[repo]["searchData"]["githubOwner"] = True
+
+                    if attributes.get("searchData", False):
+                        graph.nodes[node]["searchData"][
+                            "ownedGitHubRepositories"
+                        ] = True
                     else:
-                        graph.nodes[repo]["searchData"]["githubOwner"] = True
+                        graph.nodes[node]["searchData"] = {
+                            "ownedGitHubRepositories": True
+                        }
 
-                if attributes.get("searchData", False):
-                    graph.nodes[node]["searchData"]["ownedGitHubRepositories"] = True
                 else:
-                    graph.nodes[node]["searchData"] = {"ownedGitHubRepositories": True}
+                    # We have already added the repositories
+                    pass
 
-            else:
-                # We have already added the repositories
-                pass
+        return graph
 
-    return graph
+    def addContributors(self,graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+        """
+        Add the contributors for all the nodes that have
+        the type "Repository" in the graph. It adds the contributors
+        as their url.
 
+        When we have found all the contributors of a repository, we mark it
+        in the attribute "searchData" with the key "githubContributors"
+        so we don't have to search it again.
 
-def addContributors(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
-    """
-    Add the contributors for all the nodes that have
-    the type "Repository" in the graph. It adds the contributors
-    as their url.
+        Args:
+            - graph (nx.MultiDiGraph): The graph to be modified.
 
-    When we have found all the contributors of a repository, we mark it
-    in the attribute "searchData" with the key "githubContributors"
-    so we don't have to search it again.
+        Returns:
+            - nx.MultiDiGraph: The graph with the contributors.
+        """
+        graph = copy.deepcopy(graph)
 
-    Args:
-        - graph (nx.MultiDiGraph): The graph to be modified.
+        nodes, attributeList = zip(*graph.nodes(data=True))
 
-    Returns:
-        nx.MultiDiGraph: The graph with the contributors.
-    """
-    nodes, attributeList = zip(*graph.nodes(data=True))
+        for node, attributes in tqdm.tqdm(
+            zip(nodes, attributeList), total=len(nodes), desc="Adding contributors"
+        ):
+            if "Repository" in attributes["type"]:
+                if not attributes.get("searchData", False) or not attributes[
+                    "searchData"
+                ].get("githubContributors", False):
+                    contributors = github.getContributors(node)
 
-    for node, attributes in tqdm.tqdm(
-        zip(nodes, attributeList), total=len(nodes), desc="Adding contributors"
-    ):
-        if "Repository" in attributes["type"]:
-            if not attributes.get("searchData", False) or not attributes[
-                "searchData"
-            ].get("githubContributors", False):
-                contributors = github.getContributors(node)
+                    for c in contributors:
+                        if c not in graph.nodes():
+                            graph.add_node(
+                                c, type=("GitHub", "User"), color=github.COLOR
+                            )
 
-                for c in contributors:
-                    if c not in graph.nodes():
-                        graph.add_node(c, type=("GitHub", "User"), color=github.COLOR)
-                    graph.add_edge(c, node)
+                        if self.edgeLabels:
+                            graph.add_edge(c, node, label="contributes")
+                        else:
+                            graph.add_edge(c, node)
 
-                if attributes.get("searchData", False):
-                    graph.nodes[node]["searchData"]["githubContributors"] = True
+                    if attributes.get("searchData", False):
+                        graph.nodes[node]["searchData"]["githubContributors"] = True
+                    else:
+                        graph.nodes[node]["searchData"] = {"githubContributors": True}
+
                 else:
-                    graph.nodes[node]["searchData"] = {"githubContributors": True}
+                    # We have already added the contributors
+                    pass
 
-            else:
-                # We have already added the contributors
-                pass
+        return graph
 
-    return graph
+    def addParentsToRepository(self, graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+        """
+        If the repository is a fork, we add the parent to the graph.
 
+        We mark "searchData" with the key "githubParent" so we don't
+        have to search it again.
 
-def addParentsToRepository(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
-    """
-    If the repository is a fork, we add the parent to the graph.
+        When we find a repository that is a fork we continue
+        up the chain until we have added the original repository.
 
-    We mark "searchData" with the key "githubParent" so we don't
-    have to search it again.
+        Args:
+            - graph (nx.MultiDiGraph): The graph to be modified.
 
-    When we find a repository that is a fork we continue
-    up the chain until we have added the original repository.
+        Returns:
+            - nx.MultiDiGraph: The graph with the parents.
+        """
+        graph = copy.deepcopy(graph)
 
-    Args:
-        - graph (nx.MultiDiGraph): The graph to be modified.
+        nodes, attributeList = zip(*graph.nodes(data=True))
 
-    Returns:
-        nx.MultiDiGraph: The graph with the parents.
-    """
-    nodes, attributeList = zip(*graph.nodes(data=True))
+        for node, attributes in tqdm.tqdm(
+            zip(nodes, attributeList),
+            total=len(nodes),
+            desc="Adding repositories' parents",
+        ):
 
-    for node, attributes in tqdm.tqdm(
-        zip(nodes, attributeList), total=len(nodes), desc="Adding repositories' parents"
-    ):
+            tempNode, tempAttributes = node, attributes
+            continueFlag = True
 
-        tempNode, tempAttributes = node, attributes
-        continueFlag = True
+            while continueFlag:
 
-        while continueFlag:
+                if "Repository" in tempAttributes["type"] and (
+                    not tempAttributes.get("searchData", False)
+                    or not tempAttributes["searchData"].get("githubParent", False)
+                ):
+                    parent, type = github.getRepositoryParent(tempNode)
 
-            if "Repository" in tempAttributes["type"] and (
-                not tempAttributes.get("searchData", False)
-                or not tempAttributes["searchData"].get("githubParent", False)
+                    if parent:
+                        if parent not in graph.nodes():
+                            graph.add_node(
+                                parent, type=("GitHub", "Repository"), color="blue"
+                            )
+
+                        if self.edgeLabels:
+                            graph.add_edge(tempNode, parent, label="forkedFrom")
+                        else:
+                            graph.add_edge(tempNode, parent)
+
+                    if tempAttributes.get("searchData", False):
+                        graph.nodes[tempNode]["searchData"]["githubParent"] = True
+                    else:
+                        graph.nodes[tempNode]["searchData"] = {"githubParent": True}
+
+                    if parent:
+                        tempNode = parent
+                        tempAttributes = graph.nodes[parent]
+
+                else:
+                    # We have already added the parent or it was a user
+                    continueFlag = False
+
+        return graph
+
+    def addUserConnections(self, graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+        """
+        Add the followers and following for all the nodes that have
+        the type "User" in the graph. It adds the followers
+        as their url.
+
+        When we have found all the followers of a user, we mark it
+        in the attribute "searchData" with the key "githubFollow"
+
+        Args:
+            - graph (nx.MultiDiGraph): The graph to be modified.
+
+        Returns:
+            - nx.MultiDiGraph: The graph with the followers.
+        """
+        graph = copy.deepcopy(graph)
+
+        nodes, attributeList = zip(*graph.nodes(data=True))
+
+        for node, attributes in tqdm.tqdm(
+            zip(nodes, attributeList),
+            total=len(nodes),
+            desc="Adding following and followers",
+        ):
+            if "User" in attributes["type"]:
+                if not attributes.get("searchData", False) or not attributes[
+                    "searchData"
+                ].get("githubFollow", False):
+                    followers = github.getFollowers(node)
+
+                    for f in followers:
+                        if f not in graph.nodes():
+                            graph.add_node(
+                                f, type=("GitHub", "User"), color=github.COLOR
+                            )
+
+                        if self.edgeLabels:
+                            graph.add_edge(f, node, label="follows")
+                        else:
+                            graph.add_edge(f, node)
+
+                    following = github.getFollowing(node)
+
+                    for f in following:
+                        if f not in graph.nodes():
+                            graph.add_node(
+                                f, type=("GitHub", "User"), color=github.COLOR
+                            )
+
+                        if self.edgeLabels:
+                            graph.add_edge(node, f, label="follows")
+                        else:
+                            graph.add_edge(node, f)
+
+                    if attributes.get("searchData", False):
+                        graph.nodes[node]["searchData"]["githubFollow"] = True
+                    else:
+                        graph.nodes[node]["searchData"] = {"githubFollow": True}
+
+                else:
+                    # We have already added the followers
+                    pass
+
+        return graph
+
+    def addStarredRepositories(self, graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+        """
+        Add the starred repositories for all the nodes that have
+        the type "User" in the graph. It adds the starred repositories
+        as their url.
+
+        When we have found all the starred repositories of a user, we mark it
+        in the attribute "searchData" with the key "githubStarred"
+
+        Args:
+            - graph (nx.MultiDiGraph): The graph to be modified.
+
+        Returns:
+            - nx.MultiDiGraph: The graph with the starred repositories.
+        """
+        graph = copy.deepcopy(graph)
+
+        nodes, attributeList = zip(*graph.nodes(data=True))
+
+        for node, attributes in tqdm.tqdm(
+            zip(nodes, attributeList),
+            total=len(nodes),
+            desc="Adding starred repositories",
+        ):
+            if "User" in attributes["type"]:
+                if not attributes.get("searchData", False) or not attributes[
+                    "searchData"
+                ].get("githubStarred", False):
+                    starred = github.getStarredRepositories(node)
+
+                    for s in starred:
+                        if s not in graph.nodes():
+                            graph.add_node(
+                                s, type=("GitHub", "Repository"), color="blue"
+                            )
+
+                        if self.edgeLabels:
+                            graph.add_edge(node, s, label="starred")
+                        else:
+                            graph.add_edge(node, s)
+
+                    if attributes.get("searchData", False):
+                        graph.nodes[node]["searchData"]["githubStarred"] = True
+                    else:
+                        graph.nodes[node]["searchData"] = {"githubStarred": True}
+
+                else:
+                    # We have already added the starred repositories
+                    pass
+
+        return graph
+
+    def addOwners(self, graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+        """
+        Add the owner of the repository to the graph.
+
+        When we have found the owner of a repository, we mark it
+        in the attribute "searchData" with the key "githubOwner"
+
+        Args:
+            - graph (nx.MultiDiGraph): The graph to be modified.
+
+        Returns:
+            - nx.MultiDiGraph: The graph with the owners.
+        """
+        graph = copy.deepcopy(graph)
+
+        nodes, attributeList = zip(*graph.nodes(data=True))
+
+        for node, attributes in tqdm.tqdm(
+            zip(nodes, attributeList), total=len(nodes), desc="Adding repository owner"
+        ):
+            if "Repository" in attributes["type"] and (
+                not attributes.get("searchData", False)
+                or not attributes["searchData"].get("githubOwner", False)
             ):
-                parent, type = github.getRepositoryParent(tempNode)
+                owner = github.getOwner(node)
 
-                if parent:
-                    if parent not in graph.nodes():
-                        graph.add_node(
-                            parent, type=("GitHub", "Repository"), color="blue"
-                        )
-                    graph.add_edge(tempNode, parent)
+                if owner not in graph.nodes():
+                    graph.add_node(owner, type=("GitHub", "User"), color=github.COLOR)
 
-                if tempAttributes.get("searchData", False):
-                    graph.nodes[tempNode]["searchData"]["githubParent"] = True
+                if self.edgeLabels:
+                    graph.add_edge(owner, node, label="owns")
                 else:
-                    graph.nodes[tempNode]["searchData"] = {"githubParent": True}
-
-                if parent:
-                    tempNode = parent
-                    tempAttributes = graph.nodes[parent]
-
-            else:
-                # We have already added the parent or it was a user
-                continueFlag = False
-
-    return graph
-
-
-def addUserConnections(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
-    """
-    Add the followers and following for all the nodes that have
-    the type "User" in the graph. It adds the followers
-    as their url.
-
-    When we have found all the followers of a user, we mark it
-    in the attribute "searchData" with the key "githubFollow"
-
-    Args:
-        - graph (nx.MultiDiGraph): The graph to be modified.
-
-    Returns:
-        nx.MultiDiGraph: The graph with the followers.
-    """
-    nodes, attributeList = zip(*graph.nodes(data=True))
-
-    for node, attributes in tqdm.tqdm(
-        zip(nodes, attributeList),
-        total=len(nodes),
-        desc="Adding following and followers",
-    ):
-        if "User" in attributes["type"]:
-            if not attributes.get("searchData", False) or not attributes[
-                "searchData"
-            ].get("githubFollow", False):
-                followers = github.getFollowers(node)
-
-                for f in followers:
-                    if f not in graph.nodes():
-                        graph.add_node(f, type=("GitHub", "User"), color=github.COLOR)
-                    graph.add_edge(f, node)
-
-                following = github.getFollowing(node)
-
-                for f in following:
-                    if f not in graph.nodes():
-                        graph.add_node(f, type=("GitHub", "User"), color=github.COLOR)
-                    graph.add_edge(node, f)
+                    graph.add_edge(owner, node)
 
                 if attributes.get("searchData", False):
-                    graph.nodes[node]["searchData"]["githubFollow"] = True
+                    graph.nodes[node]["searchData"]["githubOwner"] = True
                 else:
-                    graph.nodes[node]["searchData"] = {"githubFollow": True}
+                    graph.nodes[node]["searchData"] = {"githubOwner": True}
 
             else:
-                # We have already added the followers
+                # We have already added the owner or it was a user
                 pass
 
-    return graph
+        return graph
 
+    def addStargazers(self, graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+        """
+        Add the stargazers of the repositories to the graph.
 
-def addStarredRepositories(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
-    """
-    Add the starred repositories for all the nodes that have
-    the type "User" in the graph. It adds the starred repositories
-    as their url.
+        When we have found the stargazers of a repository, we mark it
+        in the attribute "searchData" with the key "githubStargazers"
 
-    When we have found all the starred repositories of a user, we mark it
-    in the attribute "searchData" with the key "githubStarred"
+        Args:
+            - graph (nx.MultiDiGraph): The graph to be modified.
 
-    Args:
-        - graph (nx.MultiDiGraph): The graph to be modified.
+        Returns:
+            - nx.MultiDiGraph: The graph with the stargazers.
+        """
+        graph = copy.deepcopy(graph)
 
-    Returns:
-        nx.MultiDiGraph: The graph with the starred repositories.
-    """
-    nodes, attributeList = zip(*graph.nodes(data=True))
+        nodes, attributeList = zip(*graph.nodes(data=True))
 
-    for node, attributes in tqdm.tqdm(
-        zip(nodes, attributeList), total=len(nodes), desc="Adding starred repositories"
-    ):
-        if "User" in attributes["type"]:
-            if not attributes.get("searchData", False) or not attributes[
-                "searchData"
-            ].get("githubStarred", False):
-                starred = github.getStarredRepositories(node)
+        for node, attributes in tqdm.tqdm(
+            zip(nodes, attributeList), total=len(nodes), desc="Adding stargazers"
+        ):
+            if "Repository" in attributes["type"] and (
+                not attributes.get("searchData", False)
+                or not attributes["searchData"].get("githubStargazers", False)
+            ):
+                stargazers = github.getStargazers(node)
 
-                for s in starred:
+                for s in stargazers:
                     if s not in graph.nodes():
-                        graph.add_node(s, type=("GitHub", "Repository"), color="blue")
-                    graph.add_edge(node, s)
+                        graph.add_node(s, type=("GitHub", "User"), color=github.COLOR)
+
+                    if self.edgeLabels:
+                        graph.add_edge(s, node, label="starred")
+                    else:
+                        graph.add_edge(s, node)
 
                 if attributes.get("searchData", False):
-                    graph.nodes[node]["searchData"]["githubStarred"] = True
+                    graph.nodes[node]["searchData"]["githubStargazers"] = True
                 else:
-                    graph.nodes[node]["searchData"] = {"githubStarred": True}
+                    graph.nodes[node]["searchData"] = {"githubStargazers": True}
 
             else:
-                # We have already added the starred repositories
+                # We have already added the stargazers or it was a user
                 pass
 
-    return graph
+        return graph
 
+    def addDependencies(self, graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
+        """
+        Add the dependencies of the repositories to the graph.
 
-def addOwners(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
-    """
-    Add the owner of the repository to the graph.
+        When we have found the dependencies of a repository, we mark it
+        in the attribute "searchData" with the key "githubDependencies"
 
-    When we have found the owner of a repository, we mark it
-    in the attribute "searchData" with the key "githubOwner"
+        Args:
+            - graph (nx.MultiDiGraph): The graph to be modified.
 
-    Args:
-        - graph (nx.MultiDiGraph): The graph to be modified.
+        Returns:
+            - nx.MultiDiGraph: The graph with the dependencies.
+        """
+        graph = copy.deepcopy(graph)
 
-    Returns:
-        nx.MultiDiGraph: The graph with the owners.
-    """
-    nodes, attributeList = zip(*graph.nodes(data=True))
+        nodes, attributeList = zip(*graph.nodes(data=True))
 
-    for node, attributes in tqdm.tqdm(
-        zip(nodes, attributeList), total=len(nodes), desc="Adding repository owner"
-    ):
-        if "Repository" in attributes["type"] and (
-            not attributes.get("searchData", False)
-            or not attributes["searchData"].get("githubOwner", False)
+        for node, attributes in tqdm.tqdm(
+            zip(nodes, attributeList),
+            total=len(nodes),
+            desc="Adding repositories' dependencies",
         ):
-            owner = github.getOwner(node)
+            if "Repository" in attributes["type"] and (
+                not attributes.get("searchData", False)
+                or not attributes["searchData"].get("githubDependencies", False)
+            ):
+                dependencies = github.getDependencies(node)
 
-            if owner not in graph.nodes():
-                graph.add_node(owner, type=("GitHub", "User"), color=github.COLOR)
-            graph.add_edge(owner, node)
+                for d in dependencies:
+                    if d not in graph.nodes():
+                        graph.add_node(d, type=("GitHub", "Repository"), color="blue")
 
-            if attributes.get("searchData", False):
-                graph.nodes[node]["searchData"]["githubOwner"] = True
+                    if self.edgeLabels:
+                        graph.add_edge(node, d, label="dependsOn")
+                    else:
+                        graph.add_edge(node, d)
+
+                if attributes.get("searchData", False):
+                    graph.nodes[node]["searchData"]["githubDependencies"] = True
+                else:
+                    graph.nodes[node]["searchData"] = {"githubDependencies": True}
+
             else:
-                graph.nodes[node]["searchData"] = {"githubOwner": True}
+                # We have already added the dependencies or it was a user
+                pass
 
-        else:
-            # We have already added the owner or it was a user
-            pass
-
-    return graph
-
-
-def addStargazers(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
-    """
-    Add the stargazers of the repositories to the graph.
-
-    When we have found the stargazers of a repository, we mark it
-    in the attribute "searchData" with the key "githubStargazers"
-
-    Args:
-        - graph (nx.MultiDiGraph): The graph to be modified.
-
-    Returns:
-        nx.MultiDiGraph: The graph with the stargazers.
-    """
-    nodes, attributeList = zip(*graph.nodes(data=True))
-
-    for node, attributes in tqdm.tqdm(
-        zip(nodes, attributeList), total=len(nodes), desc="Adding stargazers"
-    ):
-        if "Repository" in attributes["type"] and (
-            not attributes.get("searchData", False)
-            or not attributes["searchData"].get("githubStargazers", False)
-        ):
-            stargazers = github.getStargazers(node)
-
-            for s in stargazers:
-                if s not in graph.nodes():
-                    graph.add_node(s, type=("GitHub", "User"), color=github.COLOR)
-                graph.add_edge(s, node)
-
-            if attributes.get("searchData", False):
-                graph.nodes[node]["searchData"]["githubStargazers"] = True
-            else:
-                graph.nodes[node]["searchData"] = {"githubStargazers": True}
-
-        else:
-            # We have already added the stargazers or it was a user
-            pass
-
-    return graph
-
-
-def addDependencies(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
-    """
-    Add the dependencies of the repositories to the graph.
-
-    When we have found the dependencies of a repository, we mark it
-    in the attribute "searchData" with the key "githubDependencies"
-
-    Args:
-        - graph (nx.MultiDiGraph): The graph to be modified.
-
-    Returns:
-        nx.MultiDiGraph: The graph with the dependencies.
-    """
-    nodes, attributeList = zip(*graph.nodes(data=True))
-
-    for node, attributes in tqdm.tqdm(
-        zip(nodes, attributeList),
-        total=len(nodes),
-        desc="Adding repositories' dependencies",
-    ):
-        if "Repository" in attributes["type"] and (
-            not attributes.get("searchData", False)
-            or not attributes["searchData"].get("githubDependencies", False)
-        ):
-            dependencies = github.getDependencies(node)
-
-            for d in dependencies:
-                if d not in graph.nodes():
-                    graph.add_node(d, type=("GitHub", "Repository"), color="blue")
-                graph.add_edge(node, d)
-
-            if attributes.get("searchData", False):
-                graph.nodes[node]["searchData"]["githubDependencies"] = True
-            else:
-                graph.nodes[node]["searchData"] = {"githubDependencies": True}
-
-        else:
-            # We have already added the dependencies or it was a user
-            pass
-
-    return graph
+        return graph
