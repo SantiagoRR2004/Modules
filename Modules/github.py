@@ -91,13 +91,13 @@ def getConnection(url: str) -> list:
                 if link:
 
                     # If found, add the value of the 'href' attribute (the URL) to the people list
-                    people.append(urljoin(BASE, link["href"]))
+                    people.append(getCorrectURL(link["href"]))
 
             # Find the 'Next' button link to go to the next page of followers
             next_page = soup.find("a", string="Next")
             # If there is a 'Next' link, update the URL to the next page
             if next_page:
-                url = urljoin(BASE, next_page["href"])
+                url = getCorrectURL(next_page["href"])
             else:
                 # No more pages, break the loop
                 url = None
@@ -142,14 +142,16 @@ def getRepositories(username: str) -> list:
         # Extract the url of the repositories
         for repo in repoBlocks:
             if repo.find("a"):
-                repositories.append(urljoin(f"{username}/", repo.find("a").text))
+                repositories.append(
+                    getCorrectURL(urljoin(f"{username}/", repo.find("a").text))
+                )
 
         # Find the 'Next' button link to go to the next page of repositories
         next_page = soup.find("a", string="Next")
 
         if next_page:
             # If there is a 'Next' link, update the URL to the next page
-            url = urljoin(BASE, next_page["href"])
+            url = getCorrectURL(next_page["href"])
         else:
             # No more pages, break the loop
             url = None
@@ -279,7 +281,7 @@ def getRepositoryParent(url: str) -> Tuple[str, str]:
 
     if parentLinkMeta:
         parentRepository = parentLinkMeta["content"]
-        parent = urljoin(BASE, parentRepository)
+        parent = getCorrectURL(parentRepository)
         typeOfParent = "fork"
 
     else:
@@ -294,7 +296,7 @@ def getRepositoryParent(url: str) -> Tuple[str, str]:
                 a_tag = div.find("a", class_="Link--inTextBlock")
 
                 if a_tag and "href" in a_tag.attrs:
-                    parent = urljoin(BASE, a_tag["href"])
+                    parent = getCorrectURL(a_tag["href"])
                     typeOfParent = "template"
                     break  # Stop once found
 
@@ -339,14 +341,14 @@ def getStarredRepositories(username: str) -> list:
             link = container.find("h3").find("a")["href"]
             if link:
                 # If found, add the value of the 'href' attribute (the URL) to the people list
-                repositories.append(link)
+                repositories.append(getCorrectURL(link))
 
         # Find the 'Next' button link to go to the next page of followers
         next_page = soup.find("a", string="Next")
 
         if next_page:
             # If there is a 'Next' link, update the URL to the next page
-            url = urljoin(BASE, next_page["href"])
+            url = getCorrectURL(next_page["href"])
         else:
             # No more pages, break the loop
             url = None
@@ -373,7 +375,7 @@ def getOwner(repository: str) -> str:
 
     # We just need to eliminate the last part of the URL
 
-    return "/".join(repository.split("/")[:-1])
+    return getCorrectURL("/".join(repository.split("/")[:-1]))
 
 
 def getStargazers(repository: str) -> list:
@@ -416,13 +418,13 @@ def getStargazers(repository: str) -> list:
                 if (
                     a.get("data-hovercard-type") == "user"
                 ):  # Check if the link has the "data-hovercard-type" attribute set to "user"
-                    stargazers.add(urljoin(BASE, a["href"]))
+                    stargazers.add(getCorrectURL(a["href"]))
 
         # Find the 'Next' button link to go to the next page of followers
         nextPage = soup.find("a", string="Next")
         # If there is a 'Next' link, update the URL to the next page
         if nextPage:
-            url = urljoin(BASE, nextPage["href"])
+            url = getCorrectURL(nextPage["href"])
         else:
             # No more pages, break the loop
             url = None
