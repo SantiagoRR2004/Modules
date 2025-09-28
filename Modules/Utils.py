@@ -84,7 +84,7 @@ def getSongs(folder, songNames):
     percentageResults = calculatePercentage(mp3List)
     with open("Music/mp3Percents.json", "w") as jsonFile:
         json.dump(percentageResults, jsonFile, indent=2, ensure_ascii=False)
-        jsonFile.write("\n") # New line like Prettier
+        jsonFile.write("\n")  # New line like Prettier
 
     with open("Music/notExercise.txt", "r") as file:
         elements = file.read().splitlines()
