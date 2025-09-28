@@ -174,7 +174,12 @@ class GitHubGraphManager:
                             )
 
                         if self.edgeLabels:
-                            graph.add_edge(tempNode, parent, label="forkedFrom")
+                            if type == "fork":
+                                graph.add_edge(tempNode, parent, label="forkedFrom")
+                            elif type == "template":
+                                graph.add_edge(tempNode, parent, label="templateFrom")
+                            else:
+                                graph.add_edge(tempNode, parent, label="parent")
                         else:
                             graph.add_edge(tempNode, parent)
 
@@ -229,10 +234,13 @@ class GitHubGraphManager:
                                 f, type=("GitHub", "User"), color=github.COLOR
                             )
 
-                        if self.edgeLabels:
-                            graph.add_edge(f, node, label="follows")
-                        else:
-                            graph.add_edge(f, node)
+                        # Check if the edge already exists to avoid duplicates
+                        # This is only valid because between users the only relation is "follows"
+                        if not graph.has_edge(f, node):
+                            if self.edgeLabels:
+                                graph.add_edge(f, node, label="follows")
+                            else:
+                                graph.add_edge(f, node)
 
                     following = github.getFollowing(node)
 
@@ -242,10 +250,13 @@ class GitHubGraphManager:
                                 f, type=("GitHub", "User"), color=github.COLOR
                             )
 
-                        if self.edgeLabels:
-                            graph.add_edge(node, f, label="follows")
-                        else:
-                            graph.add_edge(node, f)
+                        # Check if the edge already exists to avoid duplicates
+                        # This is only valid because between users the only relation is "follows"
+                        if not graph.has_edge(node, f):
+                            if self.edgeLabels:
+                                graph.add_edge(node, f, label="follows")
+                            else:
+                                graph.add_edge(node, f)
 
                     if attributes.get("searchData", False):
                         graph.nodes[node]["searchData"]["githubFollow"] = True
