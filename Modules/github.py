@@ -7,7 +7,9 @@ import time
 
 BASE = "https://github.com"
 COLOR = "#852fa4"
-NUMBERCALLS = 0
+
+NORMALCALLS = 0
+APICALLS = 0
 
 
 def getCorrectURL(url: str) -> str:
@@ -71,12 +73,12 @@ def getConnection(url: str) -> list:
     """
     # Initialize an empty list to store the URLs of each
     people = []
-    global NUMBERCALLS
+    global NORMALCALLS
 
     while url:
 
         response = requests.get(url)
-        NUMBERCALLS += 1
+        NORMALCALLS += 1
         if response.status_code == 200:
             # First we get the body of the page
             soup = BeautifulSoup(response.text, "html.parser")
@@ -124,7 +126,7 @@ def getRepositories(username: str) -> list:
         - list: The list of URLs for the repositories.
     """
     username = getCorrectURL(username)
-    global NUMBERCALLS
+    global NORMALCALLS
 
     url = f"{username}?tab=repositories"
 
@@ -132,7 +134,7 @@ def getRepositories(username: str) -> list:
 
     while url:
         response = requests.get(url)
-        NUMBERCALLS += 1
+        NORMALCALLS += 1
 
         soup = BeautifulSoup(response.text, "html.parser")
 
@@ -182,15 +184,17 @@ def getContributors(repo: str) -> list:
         - list: The list of URLs for the contributors.
     """
     url = getCorrectURL(repo)
-    global NUMBERCALLS
+    global NORMALCALLS
 
     # First we check that there are contributors to not use the API
     response = requests.get(url)
-    NUMBERCALLS += 1
+    NORMALCALLS += 1
     soup = BeautifulSoup(response.text, "html.parser")
 
     if not "Contributors" in soup.text:
         return []
+
+    global APICALLS
 
     repoUserAndName = "/".join(url.split("/")[-2:])
 
@@ -203,7 +207,7 @@ def getContributors(repo: str) -> list:
     url = f"{contributorsUrl}?page={number}"
 
     response = requests.get(url)
-    NUMBERCALLS += 1
+    APICALLS += 1
 
     while response.status_code == 200 and response.json():
 
@@ -221,7 +225,7 @@ def getContributors(repo: str) -> list:
 
             url = f"{contributorsUrl}?page={number}"
             response = requests.get(url)
-            NUMBERCALLS += 1
+            APICALLS += 1
 
     time.sleep(random.random())
 
@@ -244,8 +248,8 @@ def getRealUrlFromAPI(url: str) -> str:
         - str: The real URL.
     """
     response = requests.get(url)
-    global NUMBERCALLS
-    NUMBERCALLS += 1
+    global APICALLS
+    APICALLS += 1
     return response.json()["html_url"]
 
 
@@ -268,8 +272,8 @@ def getRepositoryParent(url: str) -> Tuple[str, str]:
     repository = getCorrectURL(url)
 
     response = requests.get(repository)
-    global NUMBERCALLS
-    NUMBERCALLS += 1
+    global NORMALCALLS
+    NORMALCALLS += 1
     soup = BeautifulSoup(response.text, "html.parser")
 
     parent = None
@@ -319,7 +323,7 @@ def getStarredRepositories(username: str) -> list:
         - list: The list of URLs for the starred repositories.
     """
     username = getCorrectURL(username)
-    global NUMBERCALLS
+    global NORMALCALLS
 
     url = f"{username}?tab=stars"
 
@@ -327,7 +331,7 @@ def getStarredRepositories(username: str) -> list:
 
     while url:
         response = requests.get(url)
-        NUMBERCALLS += 1
+        NORMALCALLS += 1
 
         # First we get the body of the page
         soup = BeautifulSoup(response.text, "html.parser")
@@ -395,7 +399,7 @@ def getStargazers(repository: str) -> list:
         - list: The list of URLs for the stargazers.
     """
     repository = getCorrectURL(repository)
-    global NUMBERCALLS
+    global NORMALCALLS
 
     url = urljoin(f"{repository}/", "stargazers")
 
@@ -403,7 +407,7 @@ def getStargazers(repository: str) -> list:
 
     while url:
         response = requests.get(url)
-        NUMBERCALLS += 1
+        NORMALCALLS += 1
 
         # First we get the body of the page
         soup = BeautifulSoup(response.text, "html.parser")
@@ -452,14 +456,14 @@ def getDependencies(repository: str) -> list:
         - list: The list of URLs for the dependencies.
     """
     repository = getCorrectURL(repository)
-    global NUMBERCALLS
+    global NORMALCALLS
 
     url = urljoin(f"{repository}/", "network/dependencies")
 
     dependencies = []
 
     response = requests.get(url)
-    NUMBERCALLS += 1
+    NORMALCALLS += 1
 
     if response.status_code == 200:
         pass
