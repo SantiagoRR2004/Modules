@@ -145,7 +145,7 @@ class SteamGraphManager:
     ) -> dict:
         """
         Get the dictionary of games played by the number of users.
-        
+
         Args:
             - graph (nx.MultiDiGraph): The graph to analyze.
 
