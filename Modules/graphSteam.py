@@ -138,3 +138,47 @@ class SteamGraphManager:
                         graph.nodes[node]["searchData"]["games"] = True
 
         return graph
+
+    def getPlayedGames(
+        self,
+        graph: nx.MultiDiGraph,
+    ) -> dict:
+        """
+        Get the dictionary of games played by the number of users.
+        
+        Args:
+            - graph (nx.MultiDiGraph): The graph to analyze.
+
+        Returns:
+            - dict: A dictionary where the keys are the number of users
+                and the values are lists of games played by that number of users.
+                The lists are sorted alphabetically and the dictionary is sorted
+                by the number of users in descending order.
+        """
+        nodes, attributeList = zip(*graph.nodes(data=True))
+
+        # Dictionary of games
+        videogames = {
+            node: 0
+            for node, attributes in zip(nodes, attributeList)
+            if "Game" in attributes.get("type", [])
+        }
+
+        # Number of users that play each game
+        for v in videogames:
+            """
+            This only works because the only relationships of games are with users.
+            If there were other relationships, we would need to filter the neighbors.
+            """
+            videogames[v] = len(list(graph.neighbors(v)))
+
+        # Now we reverse the dictionary
+        toret = {}
+        for k, v in videogames.items():
+            toret[v] = toret.get(v, []) + [k]
+
+        # Sort each sublist alphabetically
+        for k in toret:
+            toret[k].sort()
+
+        return dict(sorted(toret.items(), reverse=True))
