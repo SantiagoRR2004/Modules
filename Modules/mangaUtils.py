@@ -198,7 +198,7 @@ class MangaCreator:
         """
         Creates a PDF file from a list of images.
 
-        THIS IS DEPRECATED BECAUSE CALIBRE HANDLES ZIPS BETTER.
+        THIS IS DEPRECATED BECAUSE CALIBRE HANDLES CBZ BETTER.
 
         Args:
             - imageList (List[str]): List of image filenames to include in the PDF.
@@ -285,7 +285,11 @@ class MangaCreator:
         """
         Creates a CBZ (Comic Book Zip) file from a list of images.
 
-        THIS IS DEPRECATED BECAUSE CALIBRE HANDLES ZIPS BETTER.
+        The way to properly use Calibre to create an AZW3 file is to:
+            - In the "Comic input" tab, select the "Landscape" option.
+                (Stops images from being split in half)
+            - In the "AZW3 output" tab, select the
+                "Do not add a table of contents" option.
 
         Args:
             - imagesList (List[str]): List of image filenames to include in the CBZ.
@@ -294,25 +298,19 @@ class MangaCreator:
         Returns:
             - None
         """
-        for image_file in imagesList:
-            FileHandling.copyFile(
-                self.imageFolder,
-                image_file,
-                self.temporalFolder,
-                str(imagesList.index(image_file)) + ".jpg",
-            )
-        imagesList = FileHandling.findPatternFolder(self.temporalFolder, ".jpg$")
+        self.createZIP(imagesList, outputFile[: -len(".cbz")] + ".zip")
 
-        with zipfile.ZipFile(outputFile, "w", zipfile.ZIP_DEFLATED) as cbz:
-            for image_file in imagesList:
-                image_path = os.path.join(self.temporalFolder, image_file)
-                with Image.open(image_path) as img:  # Does this do anything?
-                    # rgb_image = img.convert("RGB")
-                    cbz.write(image_path, arcname=os.path.basename(image_path))
+        # Rename the .zip file to .cbz
+        os.rename(outputFile[: -len(".cbz")] + ".zip", outputFile)
 
     def createZIP(self, imagesList: List[str], outputFile: str) -> None:
         """
         Creates a ZIP file from a list of images.
+
+        CALIBRE HANDLES CBZ BETTER.
+
+        When an image is too wide, first it adds the full image,
+        then the smaller divided images.
 
         Args:
             - imagesList (List[str]): List of image filenames to include in the ZIP.
@@ -328,16 +326,17 @@ class MangaCreator:
             [Image.open(os.path.join(self.imageFolder, x)).width for x in imagesList]
         ).most_common(1)[0][0]
 
-        # Always add the full image
-        FileHandling.copyFile(
-            self.imageFolder,
-            image_file,
-            outputFile[: -len(".zip")],
-            image_file,
-        )
-
         # Process images and handle oversized ones
         for image_file in imagesList:
+
+            # Always add the full image
+            FileHandling.copyFile(
+                self.imageFolder,
+                image_file,
+                outputFile[: -len(".zip")],
+                image_file,
+            )
+
             image_path = os.path.join(self.imageFolder, image_file)
             image = Image.open(image_path)
 
@@ -357,8 +356,9 @@ class MangaCreator:
                     cropped_image = image.crop((left, 0, right, image.height))
 
                     # Save the cropped image to temporal folder
+                    # The p is to ensure proper ordering after the whole image
                     divided_filename = (
-                        f"{base_filename}_{pageNumber-1-i:03d}{extension}"
+                        f"{base_filename}p{pageNumber-1-i:03d}{extension}"
                     )
                     divided_path = os.path.join(self.temporalFolder, divided_filename)
                     cropped_image.save(divided_path)
