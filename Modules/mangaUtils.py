@@ -355,6 +355,15 @@ class MangaCreator:
                     right = min((i + 1) * currentWidth, image.width)
                     cropped_image = image.crop((left, 0, right, image.height))
 
+                    # Convert to RGB if necessary
+                    if cropped_image.mode == "RGBA":
+                        # Create a white background and paste the image on top
+                        background = Image.new("RGB", cropped_image.size, (255, 255, 255))
+                        background.paste(cropped_image, mask=cropped_image.split()[3])  # Use alpha channel as mask
+                        cropped_image = background
+                    elif cropped_image.mode != "RGB":
+                        cropped_image = cropped_image.convert("RGB")
+
                     # Save the cropped image to temporal folder
                     # The p is to ensure proper ordering after the whole image
                     divided_filename = (
