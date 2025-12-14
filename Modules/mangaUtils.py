@@ -358,8 +358,12 @@ class MangaCreator:
                     # Convert to RGB if necessary
                     if cropped_image.mode == "RGBA":
                         # Create a white background and paste the image on top
-                        background = Image.new("RGB", cropped_image.size, (255, 255, 255))
-                        background.paste(cropped_image, mask=cropped_image.split()[3])  # Use alpha channel as mask
+                        background = Image.new(
+                            "RGB", cropped_image.size, (255, 255, 255)
+                        )
+                        background.paste(
+                            cropped_image, mask=cropped_image.split()[3]
+                        )  # Use alpha channel as mask
                         cropped_image = background
                     elif cropped_image.mode != "RGB":
                         cropped_image = cropped_image.convert("RGB")
