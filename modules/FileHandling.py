@@ -1,7 +1,7 @@
 import os
 import re
 import json
-from Modules import zipping
+from modules import zipping
 
 
 def deleteFolder(path):

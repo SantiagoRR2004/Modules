@@ -1,6 +1,6 @@
 import requests
-from Modules import FileHandling
-from Modules import zipping
+from modules import FileHandling
+from modules import zipping
 import os
 import random
 import time

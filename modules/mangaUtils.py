@@ -1,4 +1,4 @@
-from Modules import FileHandling, CsvHandling, zipping
+from modules import FileHandling, CsvHandling, zipping
 from typing import List, Dict
 import PyPDF2
 from reportlab.pdfgen import canvas

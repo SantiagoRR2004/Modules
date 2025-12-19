@@ -1,4 +1,4 @@
-from Modules import credentials
+from modules import credentials
 import smtplib
 import imaplib
 import email

@@ -2,7 +2,7 @@ import os
 import subprocess
 import shutil
 import json
-from Modules import FileHandling
+from modules import FileHandling
 import importlib.util
 
 
