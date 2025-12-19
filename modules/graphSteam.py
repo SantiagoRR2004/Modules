@@ -1,4 +1,4 @@
-from Modules import steam, credentials
+from modules import steam, credentials
 import networkx as nx
 import copy
 import tqdm

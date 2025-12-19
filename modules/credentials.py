@@ -1,4 +1,4 @@
-from Modules import FileHandling
+from modules import FileHandling
 import os
 
 

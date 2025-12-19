@@ -1,4 +1,4 @@
-from Modules import github
+from modules import github
 import networkx as nx
 import copy
 import tqdm

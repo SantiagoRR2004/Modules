@@ -1,6 +1,6 @@
 import zipfile
 import os
-from Modules import FileHandling
+from modules import FileHandling
 
 
 def zipDir(path):
