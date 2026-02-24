@@ -15,12 +15,32 @@ import secretstorage
 import sys
 
 
-def downloadImage(url, dest_file):
-    if not os.path.isfile(dest_file):
-        response = requests.get(url)
+def downloadImage(url: str, destinationFile: str, headers: dict = {}) -> None:
+    """
+    Downloads an image from the given URL and saves it to the specified destination file.
+
+    It doesn't download if the file already existst and
+    it will wait to be polite.
+
+    Args:
+        - url (str): The URL of the image to be downloaded.
+        - destinationFile (str): The path where the downloaded image will be saved.
+        - headers (dict): An optional dictionary of HTTP headers to include in the request.
+
+    Returns:
+        - None
+    """
+    # Check if the file already exists
+    if not os.path.isfile(destinationFile):
+
+        response = requests.get(url, headers=headers)
+
         if response.status_code == 200:
-            with open(dest_file, "wb") as f:
+
+            with open(destinationFile, "wb") as f:
                 f.write(response.content)
+
+        # Be polite
         time.sleep(random.uniform(0.1, 1))
 
 
