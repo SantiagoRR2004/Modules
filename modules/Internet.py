@@ -1,18 +1,19 @@
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.webdriver import WebDriver
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Cipher import AES
+import secretstorage
 import requests
-import os
+import sqlite3
 import random
 import time
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-import sqlite3
-from Crypto.Cipher import AES
-from Crypto.Protocol.KDF import PBKDF2
-import secretstorage
 import sys
+import os
 
 
 def downloadImage(url: str, destinationFile: str, headers: dict = {}) -> None:
@@ -44,7 +45,7 @@ def downloadImage(url: str, destinationFile: str, headers: dict = {}) -> None:
         time.sleep(random.uniform(0.1, 1))
 
 
-def configureChrome() -> webdriver.Chrome:
+def configureChrome() -> WebDriver:
     """
     Configures a Chrome WebDriver instance
     and tries to say it is not automated.
@@ -53,10 +54,10 @@ def configureChrome() -> webdriver.Chrome:
         - None
 
     Returns:
-        - webdriver.Chrome: A WebDriver instance
+        - WebDriver: A WebDriver instance
     """
     # pip install --upgrade selenium
-    chrome_options = webdriver.ChromeOptions()
+    chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option("useAutomationExtension", False)
@@ -64,29 +65,30 @@ def configureChrome() -> webdriver.Chrome:
     # userDataDir = os.path.join(os.path.expanduser("~"), ".config", "google-chrome", "Default")
     # chrome_options.add_argument(f"user-data-dir={userDataDir}")
     service = Service(ChromeDriverManager().install())
-    return webdriver.Chrome(options=chrome_options, service=service)
+    return WebDriver(options=chrome_options, service=service)
 
 
-def clickButton(driver: webdriver.Chrome, name: str) -> None:
+def clickButton(driver: WebDriver, name: str) -> None:
     """
-    Clicks a button on the webpage by its value attribute.
+    Click a button by its value attribute or visible text.
 
     Args:
-        - driver (webdriver.Chrome): The Chrome WebDriver instance.
-        - name (str): The value of the button to be clicked.
+        - driver (WebDriver): The Chrome WebDriver instance.
+        - name (str): The button value or text.
 
     Returns:
         - None
     """
-    wait = WebDriverWait(
-        driver, 10
-    )  # Wait up to 10 seconds for the button to be clickable
+    # Wait up to 10 seconds for the button to be clickable
+    wait = WebDriverWait(driver, 10)
 
     button = wait.until(
         EC.element_to_be_clickable(
             (
                 By.XPATH,
-                f"//button[@value='{name}'] | //input[@type='submit' and @value='{name}']",
+                f"//button[@value='{name}'] "
+                f"| //input[@type='submit' and @value='{name}'] "
+                f"| //button[contains(text(), '{name}')]",
             )
         )
     )
@@ -94,7 +96,7 @@ def clickButton(driver: webdriver.Chrome, name: str) -> None:
     button.click()
 
 
-def findPNGs(driver):
+def findPNGs(driver: WebDriver):
     script = """
 var mainContainerElements = document.getElementsByClassName('MainContainer');
 var images = [];
